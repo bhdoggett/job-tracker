@@ -1,0 +1,95 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.back {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-family: inherit;
+}
+
+.back:hover { color: var(--color-primary); }
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.client {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rate {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: 1.25rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-family: inherit;
+}
+
+.tab:hover { color: var(--color-text); }
+
+.tabActive {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  font-weight: 500;
+}
+
+.tabHeader {
+  margin-bottom: 0.75rem;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.entryNotes {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  padding: 1rem 0;
+}

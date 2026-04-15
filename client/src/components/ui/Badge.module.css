@@ -1,0 +1,18 @@
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.active { background: #dcfce7; color: #15803d; }
+.completed { background: #e0e7ff; color: #4338ca; }
+.archived { background: #f3f4f6; color: #6b7280; }
+.todo { background: #fef9c3; color: #854d0e; }
+.in_progress { background: #dbeafe; color: #1d4ed8; }
+.done { background: #dcfce7; color: #15803d; }
+.draft { background: #f3f4f6; color: #6b7280; }
+.sent { background: #dbeafe; color: #1d4ed8; }
+.paid { background: #dcfce7; color: #15803d; }
