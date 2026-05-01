@@ -5,9 +5,11 @@
   "workspaces": [
     "packages/*",
     "backend",
-    "client"
+    "client",
+    "electron"
   ],
   "scripts": {
+    "app": "npm run start --workspace=electron",
     "dev": "npm run dev --workspace=backend & npm run dev --workspace=client",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:client": "npm run dev --workspace=client",

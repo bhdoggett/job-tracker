@@ -32,6 +32,9 @@
   background: var(--color-bg);
 }
 
+.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.sortable:hover { color: var(--color-text); }
+
 .row { cursor: pointer; }
 .row:hover td { background: var(--color-bg); }
 
@@ -39,4 +42,32 @@
   text-align: center;
   color: var(--color-text-muted);
   padding: 2rem !important;
+}
+
+.actions {
+  white-space: nowrap;
+  text-align: right;
+  padding-right: 0.75rem !important;
+}
+
+.actionBtn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  margin-left: 0.25rem;
+}
+
+.actionBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.actionBtnDanger:hover {
+  border-color: #e53e3e;
+  color: #e53e3e;
 }

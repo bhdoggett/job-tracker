@@ -6,6 +6,9 @@ import { TasksPage } from "./pages/TasksPage.tsx";
 import { TimeEntriesPage } from "./pages/TimeEntriesPage.tsx";
 import { InvoicesPage } from "./pages/InvoicesPage.tsx";
 import { InvoiceDetailPage } from "./pages/InvoiceDetailPage.tsx";
+import { ProfilePage } from "./pages/ProfilePage.tsx";
+import { ExpensesPage } from "./pages/ExpensesPage.tsx";
+import { BusinessPage } from "./pages/BusinessPage.tsx";
 
 export default function App() {
   return (
@@ -18,6 +21,9 @@ export default function App() {
         <Route path="time-entries" element={<TimeEntriesPage />} />
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+        <Route path="expenses" element={<ExpensesPage />} />
+        <Route path="business" element={<BusinessPage />} />
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
     </Routes>
   );

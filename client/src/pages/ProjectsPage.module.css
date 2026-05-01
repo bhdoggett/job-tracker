@@ -33,6 +33,9 @@
   background: var(--color-bg);
 }
 
+.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.sortable:hover { color: var(--color-text); }
+
 .row {
   cursor: pointer;
 }

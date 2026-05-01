@@ -2,6 +2,15 @@
 
 Personal project and time tracking tool for freelancers. Track projects, tasks, and hours — then generate invoices.
 
+## Features
+
+- **Projects** — track clients, rates (hourly or fixed), and status
+- **Tasks** — sortable table across all projects, or filtered per-project with the same UI
+- **Time Entries** — log hours per project, associate with specific tasks
+- **Expenses** — track project-related costs
+- **Invoices** — generate invoices from logged time and expenses
+- **Notes** — rich-text notes panel per project
+
 ## Requirements
 
 - [Node.js](https://nodejs.org/) 20+
@@ -87,4 +96,19 @@ npm run dev
 - **Frontend:** Vite, React, TypeScript, CSS Modules
 - **Backend:** Hono, TypeScript
 - **Database:** PostgreSQL, Drizzle ORM
-- **Monorepo:** npm workspaces
+- **Monorepo:** npm workspaces (`client`, `backend`, `packages/shared`)
+
+## Project structure
+
+```
+client/src/
+  components/     # Shared UI — TasksTable, Badge, Button, Modal, etc.
+  pages/          # One file per route
+  api/            # Typed fetch wrappers per resource
+backend/src/
+  routes/         # Hono route handlers
+  db/
+    schema/       # Drizzle table definitions
+    migrations/   # Generated SQL migrations
+packages/shared/  # Types shared between frontend and backend
+```

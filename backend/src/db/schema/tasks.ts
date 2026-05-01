@@ -4,6 +4,7 @@ import {
   integer,
   text,
   varchar,
+  date,
   pgEnum,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -18,11 +19,11 @@ export const taskStatusEnum = pgEnum("task_status", [
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id")
-    .notNull()
     .references(() => projects.id, { onDelete: "cascade" }),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   status: taskStatusEnum("status").notNull().default("todo"),
+  dueDate: date("due_date"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

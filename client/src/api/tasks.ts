@@ -2,9 +2,10 @@ import type { Task } from "@job-tracker/shared";
 import { api } from "./client.ts";
 
 export const tasksApi = {
-  list: (params?: { projectId?: number; status?: string }) => {
+  list: (params?: { projectId?: number; status?: string; business?: boolean }) => {
     const qs = new URLSearchParams();
-    if (params?.projectId) qs.set("projectId", String(params.projectId));
+    if (params?.business) qs.set("business", "true");
+    else if (params?.projectId) qs.set("projectId", String(params.projectId));
     if (params?.status) qs.set("status", params.status);
     const q = qs.toString();
     return api.get<Task[]>(`/api/tasks${q ? `?${q}` : ""}`);

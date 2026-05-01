@@ -12,4 +12,9 @@ export const env = {
       throw new Error("DATABASE_URL not set");
     })(),
   PORT: parseInt(process.env.PORT ?? "3001", 10),
+  ENCRYPTION_KEY:
+    process.env.ENCRYPTION_KEY ??
+    (() => {
+      throw new Error("ENCRYPTION_KEY not set");
+    })(),
 };

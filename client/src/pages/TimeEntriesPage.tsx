@@ -1,34 +1,61 @@
 import { useEffect, useState } from "react";
-import type { TimeEntry } from "@job-tracker/shared";
+import type { Project, Task, TimeEntry } from "@job-tracker/shared";
+import { projectsApi } from "../api/projects.ts";
+import { tasksApi } from "../api/tasks.ts";
 import { timeEntriesApi } from "../api/time-entries.ts";
 import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Textarea } from "../components/ui/Input.tsx";
+import { LogTimeModal } from "../components/LogTimeModal.tsx";
 import styles from "./TimeEntriesPage.module.css";
 
 export function TimeEntriesPage() {
   const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ projectId: "", durationMin: "", notes: "" });
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [sortCol, setSortCol] = useState<"duration" | "project" | "task" | "date">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     timeEntriesApi.list().then(setEntries).catch(console.error);
+    projectsApi.list().then(setProjects).catch(console.error);
+    tasksApi.list().then(setTasks).catch(console.error);
   }, []);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const en = await timeEntriesApi.create({
-      projectId: parseInt(form.projectId, 10),
-      durationMin: parseInt(form.durationMin, 10),
-      notes: form.notes || null,
-    });
-    setEntries((prev) => [en, ...prev]);
-    setShowForm(false);
-    setForm({ projectId: "", durationMin: "", notes: "" });
-  };
 
   const totalHours =
     entries.reduce((sum, e) => sum + (e.durationMin ?? 0), 0) / 60;
+
+  const toggleSort = (col: typeof sortCol) => {
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("asc"); }
+  };
+
+  const arrow = (col: typeof sortCol) =>
+    sortCol === col ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+
+  const sorted = [...entries].sort((a, b) => {
+    let av: string | number = "";
+    let bv: string | number = "";
+    if (sortCol === "duration") { av = a.durationMin ?? 0; bv = b.durationMin ?? 0; }
+    else if (sortCol === "project") {
+      av = projects.find((p) => p.id === a.projectId)?.name ?? "";
+      bv = projects.find((p) => p.id === b.projectId)?.name ?? "";
+    }
+    else if (sortCol === "task") {
+      av = a.taskId ? (tasks.find((t) => t.id === a.taskId)?.title ?? "") : "";
+      bv = b.taskId ? (tasks.find((t) => t.id === b.taskId)?.title ?? "") : "";
+    }
+    else if (sortCol === "date") {
+      av = a.startedAt ?? a.createdAt;
+      bv = b.startedAt ?? b.createdAt;
+    }
+    if (av < bv) return sortDir === "asc" ? -1 : 1;
+    if (av > bv) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  const openNew = () => { setEditingEntry(null); setShowForm(true); };
+  const openEdit = (e: TimeEntry) => { setEditingEntry(e); setShowForm(true); };
 
   return (
     <div>
@@ -37,30 +64,32 @@ export function TimeEntriesPage() {
           Time Entries{" "}
           <span className={styles.total}>{totalHours.toFixed(1)}h total</span>
         </h1>
-        <Button onClick={() => setShowForm(true)}>Log Time</Button>
+        <Button onClick={openNew}>Log Time</Button>
       </div>
 
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>Duration</th>
-            <th>Project</th>
+            <th className={styles.sortable} onClick={() => toggleSort("duration")}>Duration{arrow("duration")}</th>
+            <th className={styles.sortable} onClick={() => toggleSort("project")}>Project{arrow("project")}</th>
+            <th className={styles.sortable} onClick={() => toggleSort("task")}>Task{arrow("task")}</th>
             <th>Notes</th>
-            <th>Date</th>
+            <th className={styles.sortable} onClick={() => toggleSort("date")}>Date{arrow("date")}</th>
           </tr>
         </thead>
         <tbody>
-          {entries.map((e) => (
-            <tr key={e.id}>
+          {sorted.map((e) => (
+            <tr key={e.id} className={styles.row} onClick={() => openEdit(e)}>
               <td>{((e.durationMin ?? 0) / 60).toFixed(2)}h</td>
-              <td>#{e.projectId}</td>
-              <td>{e.notes ?? "—"}</td>
-              <td>{new Date(e.createdAt).toLocaleDateString()}</td>
+              <td>{projects.find((p) => p.id === e.projectId)?.name ?? `#${e.projectId}`}</td>
+              <td>{e.taskId ? (tasks.find((t) => t.id === e.taskId)?.title ?? "—") : "—"}</td>
+              <td className={styles.notes}>{e.notes ?? "—"}</td>
+              <td>{new Date(e.startedAt ?? e.createdAt).toLocaleDateString()}</td>
             </tr>
           ))}
           {entries.length === 0 && (
             <tr>
-              <td colSpan={4} className={styles.empty}>
+              <td colSpan={5} className={styles.empty}>
                 No time logged yet.
               </td>
             </tr>
@@ -69,37 +98,17 @@ export function TimeEntriesPage() {
       </table>
 
       {showForm && (
-        <Modal title="Log Time" onClose={() => setShowForm(false)}>
-          <form onSubmit={handleCreate}>
-            <Input
-              label="Project ID"
-              type="number"
-              value={form.projectId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, projectId: e.target.value }))
-              }
-              required
-            />
-            <Input
-              label="Duration (minutes)"
-              type="number"
-              min="1"
-              value={form.durationMin}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, durationMin: e.target.value }))
-              }
-              required
-            />
-            <Textarea
-              label="Notes"
-              value={form.notes}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, notes: e.target.value }))
-              }
-            />
-            <Button type="submit">Log Time</Button>
-          </form>
-        </Modal>
+        <LogTimeModal
+          existingEntry={editingEntry ?? undefined}
+          onClose={() => { setShowForm(false); setEditingEntry(null); }}
+          onSaved={(entry) => {
+            if (editingEntry) {
+              setEntries((prev) => prev.map((e) => (e.id === entry.id ? entry : e)));
+            } else {
+              setEntries((prev) => [entry, ...prev]);
+            }
+          }}
+        />
       )}
     </div>
   );

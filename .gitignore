@@ -4,3 +4,10 @@ node_modules
 dist
 .DS_Store
 *.log
+
+# fallow cache
+**/.fallow/
+
+# uploaded files (stored on disk, not in repo)
+backend/uploads/*
+!backend/uploads/.gitkeep

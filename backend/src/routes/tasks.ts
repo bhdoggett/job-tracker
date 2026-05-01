@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { db } from "../db/client";
 import { tasks } from "../db/schema/index";
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 export const tasksRouter = new Hono();
 
@@ -13,8 +13,11 @@ tasksRouter.get("/", async (c) => {
     | "done"
     | undefined;
 
+  const business = c.req.query("business");
+
   const conditions = [];
-  if (projectId) conditions.push(eq(tasks.projectId, parseInt(projectId, 10)));
+  if (business === "true") conditions.push(isNull(tasks.projectId));
+  else if (projectId) conditions.push(eq(tasks.projectId, parseInt(projectId, 10)));
   if (status) conditions.push(eq(tasks.status, status));
 
   const rows = await db.query.tasks.findMany({
@@ -29,10 +32,11 @@ tasksRouter.post("/", async (c) => {
   const [row] = await db
     .insert(tasks)
     .values({
-      projectId: body.projectId,
+      projectId: body.projectId ?? null,
       title: body.title,
       description: body.description ?? null,
       status: body.status ?? "todo",
+      dueDate: body.dueDate ?? null,
     })
     .returning();
   return c.json(row, 201);

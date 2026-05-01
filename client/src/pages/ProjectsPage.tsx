@@ -11,6 +11,8 @@ import styles from "./ProjectsPage.module.css";
 export function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [sortCol, setSortCol] = useState<"name" | "clientName" | "status" | "rateType" | "rate">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [form, setForm] = useState({
     name: "",
     clientName: "",
@@ -24,6 +26,27 @@ export function ProjectsPage() {
   useEffect(() => {
     projectsApi.list().then(setProjects).catch(console.error);
   }, []);
+
+  const toggleSort = (col: typeof sortCol) => {
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("asc"); }
+  };
+
+  const arrow = (col: typeof sortCol) =>
+    sortCol === col ? (sortDir === "asc" ? " ↑" : " ↓") : "";
+
+  const sorted = [...projects].sort((a, b) => {
+    let av: string | number = "";
+    let bv: string | number = "";
+    if (sortCol === "name") { av = a.name; bv = b.name; }
+    else if (sortCol === "clientName") { av = a.clientName; bv = b.clientName; }
+    else if (sortCol === "status") { av = a.status; bv = b.status; }
+    else if (sortCol === "rateType") { av = a.rateType; bv = b.rateType; }
+    else if (sortCol === "rate") { av = parseFloat(a.rate); bv = parseFloat(b.rate); }
+    if (av < bv) return sortDir === "asc" ? -1 : 1;
+    if (av > bv) return sortDir === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,14 +66,15 @@ export function ProjectsPage() {
       <table className={styles.table}>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Client</th>
-            <th>Rate</th>
-            <th>Status</th>
+            <th className={styles.sortable} onClick={() => toggleSort("name")}>Name{arrow("name")}</th>
+            <th className={styles.sortable} onClick={() => toggleSort("clientName")}>Client{arrow("clientName")}</th>
+            <th className={styles.sortable} onClick={() => toggleSort("status")}>Status{arrow("status")}</th>
+            <th className={styles.sortable} onClick={() => toggleSort("rateType")}>Rate Type{arrow("rateType")}</th>
+            <th className={styles.sortable} onClick={() => toggleSort("rate")}>Rate{arrow("rate")}</th>
           </tr>
         </thead>
         <tbody>
-          {projects.map((p) => (
+          {sorted.map((p) => (
             <tr
               key={p.id}
               className={styles.row}
@@ -58,18 +82,14 @@ export function ProjectsPage() {
             >
               <td>{p.name}</td>
               <td>{p.clientName}</td>
-              <td>
-                ${parseFloat(p.rate).toFixed(2)}
-                {p.rateType === "hourly" ? "/hr" : " fixed"}
-              </td>
-              <td>
-                <Badge value={p.status} />
-              </td>
+              <td><Badge value={p.status} /></td>
+              <td>{p.rateType === "hourly" ? "Hourly" : "Fixed"}</td>
+              <td>${parseFloat(p.rate).toFixed(2)}{p.rateType === "hourly" ? "/hr" : ""}</td>
             </tr>
           ))}
           {projects.length === 0 && (
             <tr>
-              <td colSpan={4} className={styles.empty}>
+              <td colSpan={5} className={styles.empty}>
                 No projects yet.
               </td>
             </tr>

@@ -38,6 +38,24 @@
   background: var(--color-bg);
 }
 
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable:hover {
+  color: var(--color-text);
+}
+
+.row { cursor: pointer; }
+.row:hover td { background: var(--color-bg); }
+
+.notes {
+  white-space: pre-wrap;
+  max-width: 300px;
+}
+
 .empty {
   text-align: center;
   color: var(--color-text-muted);
