@@ -26,6 +26,12 @@ export function TasksPage() {
 
   const BLANK = { title: "", description: "", status: "todo" as Task["status"], projectId: "", dueDate: "" };
 
+  const handleDelete = async (task: Task) => {
+    if (!confirm(`Delete "${task.title}"?`)) return;
+    await tasksApi.delete(task.id);
+    setTasks((prev) => prev.filter((t) => t.id !== task.id));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const created = await tasksApi.create({
@@ -52,6 +58,7 @@ export function TasksPage() {
         showProject
         getProjectName={getProjectName}
         onRowClick={(t) => { if (t.projectId) navigate(`/projects/${t.projectId}`); }}
+        onDelete={handleDelete}
       />
 
       {showForm && (

@@ -8,11 +8,12 @@ type SortCol = "title" | "status" | "dueDate";
 interface Props {
   tasks: Task[];
   onRowClick: (task: Task) => void;
+  onDelete?: (task: Task) => void;
   showProject?: boolean;
   getProjectName?: (projectId: number) => string;
 }
 
-export function TasksTable({ tasks, onRowClick, showProject, getProjectName }: Props) {
+export function TasksTable({ tasks, onRowClick, onDelete, showProject, getProjectName }: Props) {
   const [sortCol, setSortCol] = useState<SortCol>("title");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -41,6 +42,7 @@ export function TasksTable({ tasks, onRowClick, showProject, getProjectName }: P
           {showProject && <th>Project</th>}
           <th className={styles.sortable} onClick={() => toggleSort("dueDate")}>Due{arrow("dueDate")}</th>
           <th className={styles.sortable} onClick={() => toggleSort("status")}>Status{arrow("status")}</th>
+          {onDelete && <th />}
         </tr>
       </thead>
       <tbody>
@@ -50,11 +52,22 @@ export function TasksTable({ tasks, onRowClick, showProject, getProjectName }: P
             {showProject && <td>{t.projectId ? (getProjectName?.(t.projectId) ?? `#${t.projectId}`) : "General"}</td>}
             <td>{t.dueDate ?? "—"}</td>
             <td><Badge value={t.status} /></td>
+            {onDelete && (
+              <td>
+                <button
+                  className={styles.deleteBtn}
+                  onClick={(e) => { e.stopPropagation(); onDelete(t); }}
+                  title="Delete task"
+                >
+                  ✕
+                </button>
+              </td>
+            )}
           </tr>
         ))}
         {tasks.length === 0 && (
           <tr>
-            <td colSpan={showProject ? 4 : 3} className={styles.empty}>No tasks yet.</td>
+            <td colSpan={showProject ? (onDelete ? 5 : 4) : (onDelete ? 4 : 3)} className={styles.empty}>No tasks yet.</td>
           </tr>
         )}
       </tbody>

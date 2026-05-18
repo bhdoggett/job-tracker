@@ -64,6 +64,14 @@ export function ProjectDetailPage() {
     setShowTaskForm(true);
   };
 
+  const handleDeleteTask = async (t: Task) => {
+    if (!confirm(`Delete "${t.title}"?`)) return;
+    await tasksApi.delete(t.id);
+    setTasks((prev) => prev.filter((task) => task.id !== t.id));
+    setShowTaskForm(false);
+    setEditingTask(null);
+  };
+
   const handleSubmitTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingTask) {
@@ -138,7 +146,7 @@ export function ProjectDetailPage() {
                 Add Task
               </Button>
             </div>
-            <TasksTable tasks={tasks} onRowClick={openEditTask} />
+            <TasksTable tasks={tasks} onRowClick={openEditTask} onDelete={handleDeleteTask} />
           </div>
         )}
 
@@ -151,7 +159,8 @@ export function ProjectDetailPage() {
             </div>
             {entries.map((e) => (
               <div key={e.id} className={`${styles.card} ${styles.cardClickable}`} onClick={() => { setEditingEntry(e); setShowEntryForm(true); }}>
-                <span>{((e.durationMin ?? 0) / 60).toFixed(2)}h</span>
+                <span className={styles.entryDate}>{e.startedAt ? new Date(e.startedAt).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
+                <span className={styles.entryHours}>{((e.durationMin ?? 0) / 60).toFixed(2)}h</span>
                 <span className={styles.entryNotes}>{e.notes ?? "—"}</span>
               </div>
             ))}
@@ -217,7 +226,12 @@ export function ProjectDetailPage() {
               <option value="in_progress">In Progress</option>
               <option value="done">Done</option>
             </Select>
-            <Button type="submit">{editingTask ? "Save Changes" : "Add Task"}</Button>
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
+              <Button type="submit">{editingTask ? "Save Changes" : "Add Task"}</Button>
+              {editingTask && (
+                <Button type="button" onClick={() => handleDeleteTask(editingTask)}>Delete</Button>
+              )}
+            </div>
           </form>
         </Modal>
       )}

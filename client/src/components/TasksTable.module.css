@@ -41,3 +41,19 @@
   color: var(--color-text-muted);
   padding: 2rem !important;
 }
+
+.deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.deleteBtn:hover {
+  color: #e53e3e;
+  background: rgba(229, 62, 62, 0.08);
+}
