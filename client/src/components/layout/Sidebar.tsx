@@ -5,6 +5,7 @@ const projectLinks = [
   { to: "/projects", label: "Projects" },
   { to: "/tasks", label: "Tasks" },
   { to: "/time-entries", label: "Time Entries" },
+  { to: "/timesheets", label: "Timesheets" },
   { to: "/invoices", label: "Invoices" },
   { to: "/expenses", label: "Expenses" },
 ];

@@ -4,6 +4,7 @@ import { ProjectsPage } from "./pages/ProjectsPage.tsx";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage.tsx";
 import { TasksPage } from "./pages/TasksPage.tsx";
 import { TimeEntriesPage } from "./pages/TimeEntriesPage.tsx";
+import { TimesheetsPage } from "./pages/TimesheetsPage.tsx";
 import { InvoicesPage } from "./pages/InvoicesPage.tsx";
 import { InvoiceDetailPage } from "./pages/InvoiceDetailPage.tsx";
 import { ProfilePage } from "./pages/ProfilePage.tsx";
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="projects/:id" element={<ProjectDetailPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="time-entries" element={<TimeEntriesPage />} />
+        <Route path="timesheets" element={<TimesheetsPage />} />
         <Route path="invoices" element={<InvoicesPage />} />
         <Route path="invoices/:id" element={<InvoiceDetailPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
