@@ -238,8 +238,11 @@ export function ProjectDetailPage() {
 
       {showEntryForm && (
         <LogTimeModal
+          key={editingEntry?.id ?? "new"}
           projectId={projectId}
           existingEntry={editingEntry ?? undefined}
+          allEntries={editingEntry ? entries : undefined}
+          onNavigate={(entry) => setEditingEntry(entry)}
           onClose={() => { setShowEntryForm(false); setEditingEntry(null); }}
           onSaved={(entry) => {
             if (editingEntry) {

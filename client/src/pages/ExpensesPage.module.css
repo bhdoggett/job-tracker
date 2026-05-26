@@ -83,3 +83,184 @@
 .categoryInput:focus {
   border-color: var(--color-primary);
 }
+
+/* ── Mileage: type toggle ── */
+.typeToggle {
+  display: flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 1rem;
+}
+
+.typeBtn {
+  flex: 1;
+  padding: 0.4rem 0;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+}
+
+.typeBtn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+}
+
+.typeBtnActive {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ── Mileage: address group ── */
+.addressGroup {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.addrRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.addrRow + .addrRow {
+  border-top: 1px solid var(--color-border);
+}
+
+.addrLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.addrInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: transparent;
+  color: var(--color-text);
+}
+
+.addrInput::placeholder {
+  color: var(--color-border-strong);
+}
+
+/* ── Mileage: calculate button ── */
+.calcBtn {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.calcBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.calcBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calcBtnDone {
+  border-style: solid;
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.calcBtnError {
+  border-style: solid;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* ── Mileage: summary panel ── */
+.calcSummary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+.calcItem label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.calcItemInput {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+}
+
+.calcItemInput:focus {
+  border-color: var(--color-primary);
+}
+
+.calcTotal {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary-fg);
+  padding-top: 0.35rem;
+}
+
+/* ── Mileage: table badge and route hint ── */
+.tagMileage {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--color-primary-surface);
+  color: var(--color-primary-fg);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-bottom: 3px;
+}
+
+.routeHint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}

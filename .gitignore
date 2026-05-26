@@ -4,9 +4,13 @@ node_modules
 dist
 .DS_Store
 *.log
+docs/
 
 # fallow cache
 **/.fallow/
+
+# brainstorming visual companion
+.superpowers/
 
 # uploaded files (stored on disk, not in repo)
 backend/uploads/*

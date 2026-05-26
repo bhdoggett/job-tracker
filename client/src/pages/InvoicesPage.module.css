@@ -68,6 +68,6 @@
 }
 
 .actionBtnDanger:hover {
-  border-color: #e53e3e;
-  color: #e53e3e;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }

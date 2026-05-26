@@ -1,0 +1,191 @@
+/* ── Screen-only controls ───────────────────────────────────────── */
+.controls {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.filters > * {
+  margin-bottom: 0;
+}
+
+/* ── Table ──────────────────────────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+}
+
+.table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media print {
+  .table,
+  .table thead,
+  .table tbody,
+  .table tfoot {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    display: flex;
+    width: 100%;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table th,
+  .table td {
+    display: block;
+    padding: 0.5rem 0.5rem;
+    border-bottom: none;
+  }
+
+  /* Date column */
+  .table th:nth-child(1),
+  .table td:nth-child(1) {
+    width: 6rem;
+    flex-shrink: 0;
+  }
+
+  /* Task column */
+  .table th:nth-child(2),
+  .table td:nth-child(2) {
+    flex: 1;
+    white-space: pre-line;
+  }
+
+  /* Notes column */
+  .table th:nth-child(3),
+  .table td:nth-child(3) {
+    flex: 1;
+  }
+
+  /* Hours column */
+  .table th:nth-child(4),
+  .table td:nth-child(4) {
+    width: 4rem;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .table thead tr {
+    border-bottom: 2px solid var(--color-border-strong);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .table tfoot tr {
+    border-top: 2px solid var(--color-border-strong);
+    border-bottom: none;
+    font-weight: 600;
+  }
+}
+
+.dateCell {
+  white-space: nowrap;
+  width: 7rem;
+}
+
+.taskCell {
+  width: 40%;
+  white-space: pre-line;
+}
+
+.notes {
+  width: 40%;
+  color: var(--color-text-muted);
+}
+
+.right {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 2rem 0;
+}
+
+.totalRow td {
+  font-weight: 600;
+  border-top: 2px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+
+/* ── Print header (hidden on screen) ───────────────────────────── */
+.printHeader {
+  display: none;
+}
+
+/* ── Print styles ───────────────────────────────────────────────── */
+@media print {
+  .controls {
+    display: none;
+  }
+
+  .printHeader {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .printFrom {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .printTo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .printPeriod {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.4rem 0.5rem;
+  }
+}

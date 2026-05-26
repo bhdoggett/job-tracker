@@ -19,12 +19,16 @@ expensesRouter.get("/", async (c) => {
 expensesRouter.post("/", async (c) => {
   const body = await c.req.json();
   const [row] = await db.insert(expenses).values({
-    projectId: body.projectId,
+    projectId: body.projectId ?? null,
     description: body.description,
     amount: body.amount,
     date: body.date,
     category: body.category ?? null,
     notes: body.notes ?? null,
+    type: body.type ?? "expense",
+    fromAddress: body.fromAddress ?? null,
+    toAddress: body.toAddress ?? null,
+    miles: body.miles ?? null,
   }).returning();
   return c.json(row, 201);
 });
@@ -42,7 +46,19 @@ expensesRouter.patch("/:id", async (c) => {
   const id = parseInt(c.req.param("id"), 10);
   const body = await c.req.json();
   const [row] = await db.update(expenses)
-    .set({ ...body, updatedAt: new Date() })
+    .set({
+      ...(body.projectId !== undefined && { projectId: body.projectId }),
+      ...(body.description !== undefined && { description: body.description }),
+      ...(body.amount !== undefined && { amount: body.amount }),
+      ...(body.date !== undefined && { date: body.date }),
+      ...(body.category !== undefined && { category: body.category }),
+      ...(body.notes !== undefined && { notes: body.notes }),
+      ...(body.type !== undefined && { type: body.type }),
+      ...(body.fromAddress !== undefined && { fromAddress: body.fromAddress }),
+      ...(body.toAddress !== undefined && { toAddress: body.toAddress }),
+      ...(body.miles !== undefined && { miles: body.miles }),
+      updatedAt: new Date(),
+    })
     .where(eq(expenses.id, id))
     .returning();
   if (!row) return c.json({ error: "Not found" }, 404);
