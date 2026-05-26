@@ -10,7 +10,7 @@ async function geocode(address: string): Promise<[number, number]> {
   const key = import.meta.env.VITE_ORS_API_KEY as string;
   const url =
     `https://api.openrouteservice.org/geocode/search` +
-    `?api_key=${key}&text=${encodeURIComponent(address)}&size=1`;
+    `?api_key=${encodeURIComponent(key)}&text=${encodeURIComponent(address)}&size=1`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Geocode request failed (${res.status})`);
   const data = await res.json();
@@ -24,7 +24,7 @@ export async function fetchDrivingDistance(from: string, to: string): Promise<nu
   const [fromCoord, toCoord] = await Promise.all([geocode(from), geocode(to)]);
   const url =
     `https://api.openrouteservice.org/v2/directions/driving-car` +
-    `?api_key=${key}` +
+    `?api_key=${encodeURIComponent(key)}` +
     `&start=${fromCoord[0]},${fromCoord[1]}` +
     `&end=${toCoord[0]},${toCoord[1]}`;
   const res = await fetch(url);
