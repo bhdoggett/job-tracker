@@ -81,6 +81,8 @@ export interface ProjectSummary {
   unbilledAmount: string;
 }
 
+export type ExpenseType = "expense" | "mileage";
+
 export interface Expense {
   id: number;
   projectId: number | null;
@@ -89,6 +91,10 @@ export interface Expense {
   date: string;
   category: string | null;
   notes: string | null;
+  type: ExpenseType;
+  fromAddress: string | null;
+  toAddress: string | null;
+  miles: string | null;
   createdAt: string;
   updatedAt: string;
 }

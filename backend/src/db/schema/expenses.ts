@@ -10,6 +10,10 @@ export const expenses = pgTable("expenses", {
   date: date("date").notNull(),
   category: varchar("category", { length: 100 }),
   notes: text("notes"),
+  type: varchar("type", { length: 20 }).notNull().default("expense"),
+  fromAddress: text("from_address"),
+  toAddress: text("to_address"),
+  miles: numeric("miles", { precision: 8, scale: 2 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
