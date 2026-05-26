@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import type { Task } from "@job-tracker/shared";
-import { tasksApi } from "../api/tasks.ts";
-import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Select, Textarea } from "../components/ui/Input.tsx";
-import { Badge } from "../components/ui/Badge.tsx";
-import { DocsList } from "../components/DocsList.tsx";
+import { tasksApi } from "../api/tasks";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
+import { Input, Select, Textarea } from "../components/ui/Input";
+import { Badge } from "../components/ui/Badge";
+import { DocsList } from "../components/DocsList";
 import styles from "./BusinessPage.module.css";
 
 const BLANK = { title: "", description: "", status: "todo" as Task["status"], dueDate: "" };

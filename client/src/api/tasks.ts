@@ -1,5 +1,5 @@
 import type { Task } from "@job-tracker/shared";
-import { api } from "./client.ts";
+import { api } from "./client";
 
 export const tasksApi = {
   list: (params?: { projectId?: number; status?: string; business?: boolean }) => {

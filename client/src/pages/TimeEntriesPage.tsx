@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import type { Project, Task, TimeEntry } from "@job-tracker/shared";
-import { projectsApi } from "../api/projects.ts";
-import { tasksApi } from "../api/tasks.ts";
-import { timeEntriesApi } from "../api/time-entries.ts";
-import { Button } from "../components/ui/Button.tsx";
-import { LogTimeModal } from "../components/LogTimeModal.tsx";
+import { projectsApi } from "../api/projects";
+import { tasksApi } from "../api/tasks";
+import { timeEntriesApi } from "../api/time-entries";
+import { Button } from "../components/ui/Button";
+import { LogTimeModal } from "../components/LogTimeModal";
 import styles from "./TimeEntriesPage.module.css";
 
 export function TimeEntriesPage() {

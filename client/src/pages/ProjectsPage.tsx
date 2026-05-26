@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import type { Project } from "@job-tracker/shared";
-import { projectsApi } from "../api/projects.ts";
-import { Badge } from "../components/ui/Badge.tsx";
-import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Select, Textarea } from "../components/ui/Input.tsx";
+import { projectsApi } from "../api/projects";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
+import { Input, Select, Textarea } from "../components/ui/Input";
 import { useNavigate } from "react-router-dom";
 import styles from "./ProjectsPage.module.css";
 

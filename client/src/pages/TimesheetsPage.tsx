@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import type { Project, Task, TimeEntry, Profile } from "@job-tracker/shared";
-import { projectsApi } from "../api/projects.ts";
-import { tasksApi } from "../api/tasks.ts";
-import { timeEntriesApi } from "../api/time-entries.ts";
-import { profileApi } from "../api/profile.ts";
-import { Button } from "../components/ui/Button.tsx";
-import { Select, Input } from "../components/ui/Input.tsx";
+import { projectsApi } from "../api/projects";
+import { tasksApi } from "../api/tasks";
+import { timeEntriesApi } from "../api/time-entries";
+import { profileApi } from "../api/profile";
+import { Button } from "../components/ui/Button";
+import { Select, Input } from "../components/ui/Input";
 import styles from "./TimesheetsPage.module.css";
 
 export function TimesheetsPage() {

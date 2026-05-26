@@ -3,7 +3,8 @@ import { db } from "../db/client";
 import { projects } from "../db/schema/index";
 import { timeEntries } from "../db/schema/index";
 import { tasks } from "../db/schema/index";
-import { eq, and, isNull, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { parseId, rowOrNotFound } from "../utils/route-helpers";
 
 export const projectsRouter = new Hono();
 
@@ -37,38 +38,31 @@ projectsRouter.post("/", async (c) => {
 });
 
 projectsRouter.get("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  const row = await db.query.projects.findFirst({
-    where: eq(projects.id, id),
-  });
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  const id = parseId(c);
+  const row = await db.query.projects.findFirst({ where: eq(projects.id, id) });
+  return rowOrNotFound(c, row);
 });
 
 projectsRouter.patch("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const body = await c.req.json();
   const [row] = await db
     .update(projects)
     .set({ ...body, updatedAt: new Date() })
     .where(eq(projects.id, id))
     .returning();
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  return rowOrNotFound(c, row);
 });
 
 projectsRouter.delete("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  const [row] = await db
-    .delete(projects)
-    .where(eq(projects.id, id))
-    .returning();
+  const id = parseId(c);
+  const [row] = await db.delete(projects).where(eq(projects.id, id)).returning();
   if (!row) return c.json({ error: "Not found" }, 404);
   return c.json({ success: true });
 });
 
 projectsRouter.get("/:id/tasks", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const rows = await db.query.tasks.findMany({
     where: eq(tasks.projectId, id),
     orderBy: (t, { asc }) => [asc(t.createdAt)],
@@ -77,7 +71,7 @@ projectsRouter.get("/:id/tasks", async (c) => {
 });
 
 projectsRouter.get("/:id/time-entries", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const rows = await db.query.timeEntries.findMany({
     where: eq(timeEntries.projectId, id),
     orderBy: (te, { desc }) => [desc(te.createdAt)],
@@ -86,10 +80,8 @@ projectsRouter.get("/:id/time-entries", async (c) => {
 });
 
 projectsRouter.get("/:id/summary", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
-  const project = await db.query.projects.findFirst({
-    where: eq(projects.id, id),
-  });
+  const id = parseId(c);
+  const project = await db.query.projects.findFirst({ where: eq(projects.id, id) });
   if (!project) return c.json({ error: "Not found" }, 404);
 
   const entries = await db.query.timeEntries.findMany({

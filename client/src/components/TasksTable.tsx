@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Task } from "@job-tracker/shared";
-import { Badge } from "./ui/Badge.tsx";
+import { Badge } from "./ui/Badge";
 import styles from "./TasksTable.module.css";
 
 type SortCol = "title" | "status" | "dueDate";

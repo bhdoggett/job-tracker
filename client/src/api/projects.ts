@@ -1,5 +1,5 @@
 import type { Project, ProjectSummary } from "@job-tracker/shared";
-import { api } from "./client.ts";
+import { api } from "./client";
 
 export const projectsApi = {
   list: (status?: string) =>

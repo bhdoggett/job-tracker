@@ -1,5 +1,5 @@
 import type { Expense } from "@job-tracker/shared";
-import { api } from "./client.ts";
+import { api } from "./client";
 
 export const expensesApi = {
   list: (projectId?: number) => {

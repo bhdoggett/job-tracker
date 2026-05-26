@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import type { Expense, Project } from "@job-tracker/shared";
-import { expensesApi } from "../api/expenses.ts";
-import { projectsApi } from "../api/projects.ts";
-import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Select, Textarea } from "../components/ui/Input.tsx";
+import { expensesApi } from "../api/expenses";
+import { projectsApi } from "../api/projects";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
+import { Input, Select, Textarea } from "../components/ui/Input";
 import {
   IRS_MILEAGE_RATE_2026,
   calcMileageAmount,
   fetchDrivingDistance,
   hasOrsKey,
-} from "../lib/mileage.ts";
+} from "../lib/mileage";
 import styles from "./ExpensesPage.module.css";
 
 const SUGGESTED_CATEGORIES = [

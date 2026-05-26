@@ -1,5 +1,5 @@
 import type { TimeEntry } from "@job-tracker/shared";
-import { api } from "./client.ts";
+import { api } from "./client";
 
 export const timeEntriesApi = {
   list: (params?: { projectId?: number; from?: string; to?: string }) => {

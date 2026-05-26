@@ -1,15 +1,15 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Layout } from "./components/layout/Layout.tsx";
-import { ProjectsPage } from "./pages/ProjectsPage.tsx";
-import { ProjectDetailPage } from "./pages/ProjectDetailPage.tsx";
-import { TasksPage } from "./pages/TasksPage.tsx";
-import { TimeEntriesPage } from "./pages/TimeEntriesPage.tsx";
-import { TimesheetsPage } from "./pages/TimesheetsPage.tsx";
-import { InvoicesPage } from "./pages/InvoicesPage.tsx";
-import { InvoiceDetailPage } from "./pages/InvoiceDetailPage.tsx";
-import { ProfilePage } from "./pages/ProfilePage.tsx";
-import { ExpensesPage } from "./pages/ExpensesPage.tsx";
-import { BusinessPage } from "./pages/BusinessPage.tsx";
+import { Layout } from "./components/layout/Layout";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage";
+import { TasksPage } from "./pages/TasksPage";
+import { TimeEntriesPage } from "./pages/TimeEntriesPage";
+import { TimesheetsPage } from "./pages/TimesheetsPage";
+import { InvoicesPage } from "./pages/InvoicesPage";
+import { InvoiceDetailPage } from "./pages/InvoiceDetailPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { ExpensesPage } from "./pages/ExpensesPage";
+import { BusinessPage } from "./pages/BusinessPage";
 
 export default function App() {
   return (

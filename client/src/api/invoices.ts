@@ -1,5 +1,5 @@
 import type { Invoice, InvoiceLineItem } from "@job-tracker/shared";
-import { api } from "./client.ts";
+import { api } from "./client";
 
 export const invoicesApi = {
   list: (params?: { projectId?: number; status?: string }) => {

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Invoice, Project } from "@job-tracker/shared";
-import { invoicesApi } from "../api/invoices.ts";
-import { projectsApi } from "../api/projects.ts";
-import { Badge } from "../components/ui/Badge.tsx";
-import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Select } from "../components/ui/Input.tsx";
+import { invoicesApi } from "../api/invoices";
+import { projectsApi } from "../api/projects";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
+import { Input, Select } from "../components/ui/Input";
 import styles from "./InvoicesPage.module.css";
 
 export function InvoicesPage() {

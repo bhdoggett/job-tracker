@@ -1,7 +1,8 @@
 import { Hono } from "hono";
 import { db } from "../db/client";
 import { invoices, invoiceLineItems, timeEntries, projects } from "../db/schema/index";
-import { eq, and, gte, lte, isNull } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
+import { parseId, rowOrNotFound } from "../utils/route-helpers";
 
 export const invoicesRouter = new Hono();
 
@@ -119,29 +120,27 @@ invoicesRouter.post("/", async (c) => {
 });
 
 invoicesRouter.get("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const row = await db.query.invoices.findFirst({
     where: eq(invoices.id, id),
     with: { lineItems: true },
   });
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  return rowOrNotFound(c, row);
 });
 
 invoicesRouter.patch("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const body = await c.req.json();
   const [row] = await db
     .update(invoices)
     .set({ ...body, updatedAt: new Date() })
     .where(eq(invoices.id, id))
     .returning();
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  return rowOrNotFound(c, row);
 });
 
 invoicesRouter.delete("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const inv = await db.query.invoices.findFirst({ where: eq(invoices.id, id) });
   if (!inv) return c.json({ error: "Not found" }, 404);
   if (inv.status !== "draft")
@@ -152,7 +151,7 @@ invoicesRouter.delete("/:id", async (c) => {
 
 // Line item management
 invoicesRouter.post("/:id/line-items", async (c) => {
-  const invoiceId = parseInt(c.req.param("id"), 10);
+  const invoiceId = parseId(c);
   const body = await c.req.json();
   const [row] = await db
     .insert(invoiceLineItems)
@@ -169,8 +168,7 @@ invoicesRouter.patch("/:id/line-items/:itemId", async (c) => {
     .set(body)
     .where(eq(invoiceLineItems.id, itemId))
     .returning();
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  return rowOrNotFound(c, row);
 });
 
 invoicesRouter.delete("/:id/line-items/:itemId", async (c) => {

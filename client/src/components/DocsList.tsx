@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Doc } from "@job-tracker/shared";
-import { docsApi } from "../api/docs.ts";
-import { Button } from "./ui/Button.tsx";
+import { docsApi } from "../api/docs";
+import { Button } from "./ui/Button";
 import styles from "./DocsList.module.css";
 
 interface Props {

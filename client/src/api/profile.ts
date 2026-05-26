@@ -1,5 +1,5 @@
 import type { Profile } from "@job-tracker/shared";
-import { api } from "./client.ts";
+import { api } from "./client";
 
 export const profileApi = {
   get: () => api.get<Profile | null>("/api/profile"),

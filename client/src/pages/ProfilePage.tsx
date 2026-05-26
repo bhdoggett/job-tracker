@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Profile } from "@job-tracker/shared";
-import { profileApi } from "../api/profile.ts";
-import { Input, Textarea } from "../components/ui/Input.tsx";
-import { Button } from "../components/ui/Button.tsx";
+import { profileApi } from "../api/profile";
+import { Input, Textarea } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
 import styles from "./ProfilePage.module.css";
 
 const EMPTY: Partial<Profile> & { ein: string } = {

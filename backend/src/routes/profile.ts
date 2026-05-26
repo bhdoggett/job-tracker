@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { db } from "../db/client.ts";
-import { profile } from "../db/schema/index.ts";
+import { db } from "../db/client";
+import { profile } from "../db/schema/index";
 import { eq } from "drizzle-orm";
-import { encrypt, decrypt } from "../lib/crypto.ts";
+import { encrypt, decrypt } from "../lib/crypto";
 
 export const profileRouter = new Hono();
 

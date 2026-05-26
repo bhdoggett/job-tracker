@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { Project, Task, TimeEntry } from "@job-tracker/shared";
-import { projectsApi } from "../api/projects.ts";
-import { tasksApi } from "../api/tasks.ts";
-import { timeEntriesApi } from "../api/time-entries.ts";
-import { Modal } from "./ui/Modal.tsx";
-import { Input, Select, Textarea } from "./ui/Input.tsx";
-import { Button } from "./ui/Button.tsx";
+import { projectsApi } from "../api/projects";
+import { tasksApi } from "../api/tasks";
+import { timeEntriesApi } from "../api/time-entries";
+import { Modal } from "./ui/Modal";
+import { Input, Select, Textarea } from "./ui/Input";
+import { Button } from "./ui/Button";
 import styles from "./LogTimeModal.module.css";
 
 interface Props {

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Project, Task, TimeEntry } from "@job-tracker/shared";
-import { projectsApi } from "../api/projects.ts";
-import { tasksApi } from "../api/tasks.ts";
-import { timeEntriesApi } from "../api/time-entries.ts"; // used for listing entries
-import { TasksTable } from "../components/TasksTable.tsx";
-import { Badge } from "../components/ui/Badge.tsx";
-import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Select, Textarea } from "../components/ui/Input.tsx";
-import { LogTimeModal } from "../components/LogTimeModal.tsx";
-import { RichTextEditor } from "../components/RichTextEditor.tsx";
-import { DocsList } from "../components/DocsList.tsx";
+import { projectsApi } from "../api/projects";
+import { tasksApi } from "../api/tasks";
+import { timeEntriesApi } from "../api/time-entries"; // used for listing entries
+import { TasksTable } from "../components/TasksTable";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
+import { Input, Select, Textarea } from "../components/ui/Input";
+import { LogTimeModal } from "../components/LogTimeModal";
+import { RichTextEditor } from "../components/RichTextEditor";
+import { DocsList } from "../components/DocsList";
 import styles from "./ProjectDetailPage.module.css";
 
 type Tab = "tasks" | "time-entries" | "docs";

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { db } from "../db/client";
 import { tasks } from "../db/schema/index";
 import { eq, and, isNull } from "drizzle-orm";
+import { parseId, rowOrNotFound } from "../utils/route-helpers";
 
 export const tasksRouter = new Hono();
 
@@ -43,26 +44,24 @@ tasksRouter.post("/", async (c) => {
 });
 
 tasksRouter.get("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const row = await db.query.tasks.findFirst({ where: eq(tasks.id, id) });
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  return rowOrNotFound(c, row);
 });
 
 tasksRouter.patch("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const body = await c.req.json();
   const [row] = await db
     .update(tasks)
     .set({ ...body, updatedAt: new Date() })
     .where(eq(tasks.id, id))
     .returning();
-  if (!row) return c.json({ error: "Not found" }, 404);
-  return c.json(row);
+  return rowOrNotFound(c, row);
 });
 
 tasksRouter.delete("/:id", async (c) => {
-  const id = parseInt(c.req.param("id"), 10);
+  const id = parseId(c);
   const [row] = await db.delete(tasks).where(eq(tasks.id, id)).returning();
   if (!row) return c.json({ error: "Not found" }, 404);
   return c.json({ success: true });

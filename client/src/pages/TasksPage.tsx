@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Project, Task } from "@job-tracker/shared";
-import { tasksApi } from "../api/tasks.ts";
-import { projectsApi } from "../api/projects.ts";
-import { TasksTable } from "../components/TasksTable.tsx";
-import { Button } from "../components/ui/Button.tsx";
-import { Modal } from "../components/ui/Modal.tsx";
-import { Input, Select, Textarea } from "../components/ui/Input.tsx";
+import { tasksApi } from "../api/tasks";
+import { projectsApi } from "../api/projects";
+import { TasksTable } from "../components/TasksTable";
+import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
+import { Input, Select, Textarea } from "../components/ui/Input";
 import styles from "./TasksPage.module.css";
 
 export function TasksPage() {
