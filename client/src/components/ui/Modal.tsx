@@ -5,9 +5,10 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
+  headerSlot?: React.ReactNode;
 }
 
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, headerSlot }: ModalProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -21,6 +22,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>{title}</h2>
+          {headerSlot && <div className={styles.headerSlot}>{headerSlot}</div>}
           <button className={styles.close} onClick={onClose}>
             ×
           </button>

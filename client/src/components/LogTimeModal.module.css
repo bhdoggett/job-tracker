@@ -15,6 +15,12 @@
   margin-bottom: 0.4rem;
 }
 
+.taskGroupActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .taskGroupLabel {
   font-size: 0.8rem;
   font-weight: 500;
@@ -44,6 +50,90 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   cursor: pointer;
+}
+
+.navBtn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  line-height: 1;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: background 0.15s;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: var(--color-bg-hover);
+}
+
+.navBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.addTaskBtn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.addTaskBtn:hover {
+  opacity: 0.7;
+}
+
+.addTaskRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.addTaskInput {
+  flex: 1;
+  font-size: 0.875rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+}
+
+.addTaskInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.addTaskConfirm {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.addTaskCancel {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0.2rem;
+}
+
+.addTaskCancel:hover {
+  color: var(--color-text);
 }
 
 .markDone {

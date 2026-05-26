@@ -56,3 +56,9 @@
   color: var(--color-primary);
   font-weight: 500;
 }
+
+@media print {
+  .sidebar {
+    display: none;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Project, Task, TimeEntry } from "@job-tracker/shared";
 import { projectsApi } from "../api/projects.ts";
 import { tasksApi } from "../api/tasks.ts";
@@ -13,15 +13,22 @@ interface Props {
   projectId?: number;
   /** When provided, opens in edit mode pre-filled with this entry's data. */
   existingEntry?: TimeEntry;
+  /** Ordered list of entries for prev/next navigation (edit mode only). */
+  allEntries?: TimeEntry[];
   onClose: () => void;
   onSaved: (entry: TimeEntry) => void;
+  /** Called when user navigates to a different entry. */
+  onNavigate?: (entry: TimeEntry) => void;
 }
 
-export function LogTimeModal({ projectId, existingEntry, onClose, onSaved }: Props) {
+export function LogTimeModal({ projectId, existingEntry, allEntries, onClose, onSaved, onNavigate }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showDone, setShowDone] = useState(false);
   const [markDoneIds, setMarkDoneIds] = useState<number[]>([]);
+  const [addingTask, setAddingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const newTaskInputRef = useRef<HTMLInputElement>(null);
 
   const initForm = () => {
     if (existingEntry) {
@@ -67,6 +74,20 @@ export function LogTimeModal({ projectId, existingEntry, onClose, onSaved }: Pro
     }
   }, [activeProjectId]);
 
+  // Focus new task input when it appears
+  useEffect(() => {
+    if (addingTask) newTaskInputRef.current?.focus();
+  }, [addingTask]);
+
+  // Prev/next navigation helpers
+  const currentIdx = allEntries && existingEntry
+    ? allEntries.findIndex((e) => e.id === existingEntry.id)
+    : -1;
+  const prevEntry = currentIdx > 0 ? allEntries![currentIdx - 1] : null;
+  const nextEntry = currentIdx >= 0 && currentIdx < (allEntries?.length ?? 0) - 1
+    ? allEntries![currentIdx + 1]
+    : null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const durationMin =
@@ -90,8 +111,50 @@ export function LogTimeModal({ projectId, existingEntry, onClose, onSaved }: Pro
     onClose();
   };
 
+  const handleAddTask = async () => {
+    const title = newTaskTitle.trim();
+    if (!title || !activeProjectId) return;
+    try {
+      const task = await tasksApi.create({ projectId: activeProjectId, title, status: "todo" });
+      setTasks((prev) => [...prev, task]);
+      setForm((f) => ({ ...f, taskIds: [...f.taskIds, task.id] }));
+      setNewTaskTitle("");
+      setAddingTask(false);
+    } catch (err) {
+      console.error("Failed to create task:", err);
+      alert("Failed to create task. Please try again.");
+    }
+  };
+
+  const navButtons = existingEntry && onNavigate ? (
+    <>
+      <button
+        type="button"
+        className={styles.navBtn}
+        disabled={!prevEntry}
+        onClick={() => prevEntry && onNavigate(prevEntry)}
+        title="Previous entry"
+      >
+        ←
+      </button>
+      <button
+        type="button"
+        className={styles.navBtn}
+        disabled={!nextEntry}
+        onClick={() => nextEntry && onNavigate(nextEntry)}
+        title="Next entry"
+      >
+        →
+      </button>
+    </>
+  ) : null;
+
   return (
-    <Modal title={existingEntry ? "Edit Time Entry" : "Log Time"} onClose={onClose}>
+    <Modal
+      title={existingEntry ? "Edit Time Entry" : "Log Time"}
+      onClose={onClose}
+      headerSlot={navButtons}
+    >
       <form onSubmit={handleSubmit}>
         {!projectId && (
           <Select
@@ -108,18 +171,30 @@ export function LogTimeModal({ projectId, existingEntry, onClose, onSaved }: Pro
             ))}
           </Select>
         )}
-        {tasks.length > 0 && (
+        {(tasks.length > 0 || activeProjectId) && (
           <div className={styles.taskGroup}>
             <div className={styles.taskGroupHeader}>
               <label className={styles.taskGroupLabel}>Tasks (optional)</label>
-              {tasks.some((t) => t.status === "done") && (
-                <button type="button" className={styles.taskGroupToggle} onClick={() => setShowDone((v) => !v)}>
-                  {showDone ? "Hide completed" : "Show completed"}
-                </button>
-              )}
+              <div className={styles.taskGroupActions}>
+                {tasks.some((t) => t.status === "done") && (
+                  <button type="button" className={styles.taskGroupToggle} onClick={() => setShowDone((v) => !v)}>
+                    {showDone ? "Hide completed" : "Show completed"}
+                  </button>
+                )}
+                {activeProjectId && (
+                  <button
+                    type="button"
+                    className={styles.addTaskBtn}
+                    onClick={() => setAddingTask(true)}
+                    title="Add a new task"
+                  >
+                    +
+                  </button>
+                )}
+              </div>
             </div>
             {tasks
-              .filter((t) => showDone || t.status !== "done")
+              .filter((t) => showDone || t.status !== "done" || form.taskIds.includes(t.id))
               .map((t) => {
                 const checked = form.taskIds.includes(t.id);
                 const alreadyDone = t.status === "done";
@@ -160,6 +235,32 @@ export function LogTimeModal({ projectId, existingEntry, onClose, onSaved }: Pro
                   </div>
                 );
               })}
+            {addingTask && (
+              <div className={styles.addTaskRow}>
+                <input
+                  ref={newTaskInputRef}
+                  className={styles.addTaskInput}
+                  type="text"
+                  placeholder="New task title…"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); handleAddTask(); }
+                    if (e.key === "Escape") { setAddingTask(false); setNewTaskTitle(""); }
+                  }}
+                />
+                <button type="button" className={styles.addTaskConfirm} onClick={handleAddTask}>
+                  Add
+                </button>
+                <button
+                  type="button"
+                  className={styles.addTaskCancel}
+                  onClick={() => { setAddingTask(false); setNewTaskTitle(""); }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
           </div>
         )}
         <Input

@@ -54,6 +54,6 @@
 }
 
 .deleteBtn:hover {
-  color: #e53e3e;
-  background: rgba(229, 62, 62, 0.08);
+  color: var(--color-danger);
+  background: var(--color-danger-surface);
 }

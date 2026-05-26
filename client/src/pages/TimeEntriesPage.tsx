@@ -99,7 +99,10 @@ export function TimeEntriesPage() {
 
       {showForm && (
         <LogTimeModal
+          key={editingEntry?.id ?? "new"}
           existingEntry={editingEntry ?? undefined}
+          allEntries={editingEntry ? sorted : undefined}
+          onNavigate={(entry) => setEditingEntry(entry)}
           onClose={() => { setShowForm(false); setEditingEntry(null); }}
           onSaved={(entry) => {
             if (editingEntry) {

@@ -67,7 +67,7 @@
 }
 
 .deleteBtn:hover {
-  color: #e53e3e;
+  color: var(--color-danger);
 }
 
 .empty {
