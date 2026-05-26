@@ -26,7 +26,7 @@ Personal project and time tracking tool for freelancers. Track projects, tasks, 
 ### 1. Clone and install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/bhdoggett/job-tracker.git
 cd job-tracker
 npm install
 ```
