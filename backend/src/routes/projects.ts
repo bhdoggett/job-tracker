@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "../db/client";
-import { projects } from "../db/schema/index";
+import { projects, invoices, invoiceLineItems } from "../db/schema/index";
 import { timeEntries } from "../db/schema/index";
 import { tasks } from "../db/schema/index";
 import { eq } from "drizzle-orm";
@@ -56,6 +56,13 @@ projectsRouter.patch("/:id", async (c) => {
 
 projectsRouter.delete("/:id", async (c) => {
   const id = parseId(c);
+  const projectInvoices = await db.query.invoices.findMany({ where: eq(invoices.projectId, id) });
+  for (const inv of projectInvoices) {
+    await db.delete(invoiceLineItems).where(eq(invoiceLineItems.invoiceId, inv.id));
+  }
+  if (projectInvoices.length > 0) {
+    await db.delete(invoices).where(eq(invoices.projectId, id));
+  }
   const [row] = await db.delete(projects).where(eq(projects.id, id)).returning();
   if (!row) return c.json({ error: "Not found" }, 404);
   return c.json({ success: true });

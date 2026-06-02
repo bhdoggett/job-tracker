@@ -28,6 +28,9 @@ export function ProjectDetailPage() {
   const [notes, setNotes] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [showEditProject, setShowEditProject] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", clientName: "", description: "", status: "active" as Project["status"], rateType: "hourly" as Project["rateType"], rate: "" });
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -35,10 +38,32 @@ export function ProjectDetailPage() {
   const [taskForm, setTaskForm] = useState({ title: "", description: "", status: "todo" as Task["status"], dueDate: "" });
 
   useEffect(() => {
-    projectsApi.get(projectId).then((p) => { setProject(p); setNotes(p.notes ?? ""); }).catch(console.error);
+    projectsApi.get(projectId).then((p) => {
+      setProject(p);
+      setNotes(p.notes ?? "");
+      setEditForm({ name: p.name, clientName: p.clientName, description: p.description ?? "", status: p.status, rateType: p.rateType, rate: p.rate });
+    }).catch(console.error);
     tasksApi.list({ projectId }).then(setTasks).catch(console.error);
     timeEntriesApi.list({ projectId }).then(setEntries).catch(console.error);
   }, [projectId]);
+
+  const handleEditProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = await projectsApi.update(projectId, editForm);
+    setProject(updated);
+    setShowEditProject(false);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!confirm(`Delete "${project?.name}"? This cannot be undone.`)) return;
+    setDeleteError(null);
+    try {
+      await projectsApi.delete(projectId);
+      navigate("/projects");
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete project");
+    }
+  };
 
   const handleSaveNotes = async () => {
     setSaveStatus("saving");
@@ -109,6 +134,12 @@ export function ProjectDetailPage() {
               ${parseFloat(project.rate).toFixed(2)}
               {project.rateType === "hourly" ? "/hr" : " fixed"}
             </span>
+            <button
+              className={styles.notesToggle}
+              onClick={() => setShowEditProject(true)}
+            >
+              Edit
+            </button>
             <button
               className={`${styles.notesToggle}${notesOpen ? ` ${styles.notesToggleActive}` : ""}`}
               onClick={() => setNotesOpen((o) => !o)}
@@ -231,6 +262,62 @@ export function ProjectDetailPage() {
               {editingTask && (
                 <Button type="button" onClick={() => handleDeleteTask(editingTask)}>Delete</Button>
               )}
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {showEditProject && (
+        <Modal title="Edit Project" onClose={() => { setShowEditProject(false); setDeleteError(null); }}>
+          <form onSubmit={handleEditProject}>
+            <Input
+              label="Project Name"
+              value={editForm.name}
+              onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+              required
+            />
+            <Input
+              label="Client Name"
+              value={editForm.clientName}
+              onChange={(e) => setEditForm((f) => ({ ...f, clientName: e.target.value }))}
+              required
+            />
+            <Textarea
+              label="Description"
+              value={editForm.description}
+              onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+            />
+            <Select
+              label="Status"
+              value={editForm.status}
+              onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value as Project["status"] }))}
+            >
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+              <option value="archived">Archived</option>
+            </Select>
+            <Select
+              label="Rate Type"
+              value={editForm.rateType}
+              onChange={(e) => setEditForm((f) => ({ ...f, rateType: e.target.value as Project["rateType"] }))}
+            >
+              <option value="hourly">Hourly</option>
+              <option value="fixed">Fixed</option>
+            </Select>
+            <Input
+              label="Rate ($)"
+              type="number"
+              step="0.01"
+              value={editForm.rate}
+              onChange={(e) => setEditForm((f) => ({ ...f, rate: e.target.value }))}
+              required
+            />
+            {deleteError && (
+              <p style={{ color: "var(--color-danger, #e53e3e)", fontSize: "0.8rem", margin: "0.5rem 0" }}>{deleteError}</p>
+            )}
+            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
+              <Button type="submit">Save Changes</Button>
+              <Button type="button" onClick={handleDeleteProject}>Delete Project</Button>
             </div>
           </form>
         </Modal>
