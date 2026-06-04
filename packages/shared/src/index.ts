@@ -64,6 +64,8 @@ export interface InvoiceLineItem {
   id: number;
   invoiceId: number;
   timeEntryId: number | null;
+  date: string | null;
+  tasks: string | null;
   description: string;
   quantity: string;
   unitPrice: string;
