@@ -1,20 +1,42 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import type { Invoice } from "@job-tracker/shared";
+import type { Invoice, Profile, Project } from "@job-tracker/shared";
 import { invoicesApi } from "../api/invoices";
+import { profileApi } from "../api/profile";
+import { projectsApi } from "../api/projects";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Select } from "../components/ui/Input";
 import styles from "./InvoiceDetailPage.module.css";
+
+function formatHours(quantity: string): string {
+  const n = parseFloat(quantity);
+  return String(n);
+}
+
+function formatAddress(p: Profile): string[] {
+  const lines: string[] = [];
+  if (p.street) lines.push(p.street);
+  const cityLine = [p.city, p.state].filter(Boolean).join(", ");
+  const withZip = [cityLine, p.zip].filter(Boolean).join(" ");
+  if (withZip) lines.push(withZip);
+  return lines;
+}
 
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const invoiceId = parseInt(id!, 10);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
 
   useEffect(() => {
-    invoicesApi.get(invoiceId).then(setInvoice).catch(console.error);
+    invoicesApi.get(invoiceId).then((inv) => {
+      setInvoice(inv);
+      projectsApi.get(inv.projectId).then(setProject).catch(console.error);
+    }).catch(console.error);
+    profileApi.get().then(setProfile).catch(console.error);
   }, [invoiceId]);
 
   const handleStatusChange = async (status: string) => {
@@ -23,6 +45,9 @@ export function InvoiceDetailPage() {
   };
 
   if (!invoice) return <p>Loading...</p>;
+
+  const rate = invoice.lineItems?.[0]?.unitPrice;
+  const addressLines = profile ? formatAddress(profile) : [];
 
   return (
     <div className={styles.page}>
@@ -48,22 +73,46 @@ export function InvoiceDetailPage() {
 
       <div className={styles.invoice}>
         <div className={styles.invoiceHeader}>
-          <div>
-            <h1 className={styles.invoiceNumber}>{invoice.invoiceNumber}</h1>
-            <Badge value={invoice.status} />
+          <div className={styles.sender}>
+            {profile?.businessName && <strong>{profile.businessName}</strong>}
+            {!profile?.businessName && profile?.yourName && <strong>{profile.yourName}</strong>}
+            {addressLines.map((line, i) => <span key={i}>{line}</span>)}
+            {profile?.email && <span>{profile.email}</span>}
+            {profile?.phone && <span>{profile.phone}</span>}
           </div>
-          <div className={styles.dates}>
-            <div>
-              <span className={styles.dateLabel}>Issued</span>
-              <span>{invoice.issuedDate}</span>
+          <div className={styles.invoiceMeta}>
+            <div className={styles.invoiceTitle}>
+              <h1 className={styles.invoiceNumber}>{invoice.invoiceNumber}</h1>
+              <Badge value={invoice.status} />
             </div>
-            {invoice.dueDate && (
+            <div className={styles.dates}>
               <div>
-                <span className={styles.dateLabel}>Due</span>
-                <span>{invoice.dueDate}</span>
+                <span className={styles.dateLabel}>Issued</span>
+                <span>{invoice.issuedDate}</span>
               </div>
-            )}
+              {invoice.dueDate && (
+                <div>
+                  <span className={styles.dateLabel}>Due</span>
+                  <span>{invoice.dueDate}</span>
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        {project && (
+          <div className={styles.billTo}>
+            <span className={styles.billToLabel}>Bill To</span>
+            <strong>{project.clientName}</strong>
+          </div>
+        )}
+
+        <div className={styles.tableHeader}>
+          {rate && (
+            <span className={styles.rateNote}>
+              Rate: ${parseFloat(rate).toFixed(2)}/hr
+            </span>
+          )}
         </div>
 
         <table className={styles.lineItems}>
@@ -72,7 +121,6 @@ export function InvoiceDetailPage() {
               <th>Date</th>
               <th>Task</th>
               <th className={styles.right}>Hours</th>
-              <th className={styles.right}>Rate</th>
               <th className={styles.right}>Amount</th>
             </tr>
           </thead>
@@ -85,12 +133,7 @@ export function InvoiceDetailPage() {
                     : "—"}
                 </td>
                 <td>{item.tasks || item.description || "—"}</td>
-                <td className={styles.right}>
-                  {parseFloat(item.quantity).toFixed(2)}h
-                </td>
-                <td className={styles.right}>
-                  ${parseFloat(item.unitPrice).toFixed(2)}/hr
-                </td>
+                <td className={styles.right}>{formatHours(item.quantity)}</td>
                 <td className={styles.right}>
                   ${parseFloat(item.amount).toFixed(2)}
                 </td>

@@ -37,13 +37,37 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.sender {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.sender strong {
+  font-size: 1rem;
+  margin-bottom: 0.15rem;
+}
+
+.invoiceMeta {
+  text-align: right;
+}
+
+.invoiceTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
 }
 
 .invoiceNumber {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
 }
 
 .dates {
@@ -58,6 +82,35 @@
   color: var(--color-text-muted);
   margin-right: 0.5rem;
   font-size: 0.8rem;
+}
+
+.billTo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+
+.billToLabel {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.15rem;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.rateNote {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }
 
 .lineItems {
