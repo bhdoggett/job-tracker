@@ -98,9 +98,14 @@ export function InvoicesPage() {
 
   const handleDelete = async () => {
     if (!deletingInvoice) return;
-    await invoicesApi.delete(deletingInvoice.id);
-    setInvoices((prev) => prev.filter((i) => i.id !== deletingInvoice.id));
-    setDeletingInvoice(null);
+    try {
+      await invoicesApi.delete(deletingInvoice.id);
+      setInvoices((prev) => prev.filter((i) => i.id !== deletingInvoice.id));
+      setDeletingInvoice(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Delete failed";
+      alert(msg);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {

@@ -41,7 +41,7 @@ export function InvoiceDetailPage() {
 
   const handleStatusChange = async (status: string) => {
     const updated = await invoicesApi.update(invoiceId, { status: status as Invoice["status"] });
-    setInvoice(updated);
+    setInvoice((prev) => ({ ...updated, lineItems: prev?.lineItems }));
   };
 
   if (!invoice) return <p>Loading...</p>;
