@@ -5,6 +5,7 @@ import {
   text,
   numeric,
   timestamp,
+  date,
 } from "drizzle-orm/pg-core";
 import { invoices } from "./invoices";
 import { timeEntries } from "./time-entries";
@@ -17,6 +18,8 @@ export const invoiceLineItems = pgTable("invoice_line_items", {
   timeEntryId: integer("time_entry_id").references(() => timeEntries.id, {
     onDelete: "set null",
   }),
+  date: date("date"),
+  tasks: text("tasks"),
   description: text("description").notNull(),
   quantity: numeric("quantity", { precision: 8, scale: 2 }).notNull(),
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
