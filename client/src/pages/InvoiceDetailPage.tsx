@@ -69,19 +69,33 @@ export function InvoiceDetailPage() {
         <table className={styles.lineItems}>
           <thead>
             <tr>
+              <th>Date</th>
+              <th>Task</th>
               <th>Description</th>
-              <th className={styles.right}>Qty</th>
-              <th className={styles.right}>Unit Price</th>
+              <th className={styles.right}>Hours</th>
+              <th className={styles.right}>Rate</th>
               <th className={styles.right}>Amount</th>
             </tr>
           </thead>
           <tbody>
             {(invoice.lineItems ?? []).map((item) => (
               <tr key={item.id}>
+                <td>
+                  {item.date
+                    ? new Date(item.date + "T00:00:00").toLocaleDateString()
+                    : "—"}
+                </td>
+                <td>{item.tasks ?? "—"}</td>
                 <td>{item.description}</td>
-                <td className={styles.right}>{item.quantity}</td>
-                <td className={styles.right}>${parseFloat(item.unitPrice).toFixed(2)}</td>
-                <td className={styles.right}>${parseFloat(item.amount).toFixed(2)}</td>
+                <td className={styles.right}>
+                  {parseFloat(item.quantity).toFixed(2)}h
+                </td>
+                <td className={styles.right}>
+                  ${parseFloat(item.unitPrice).toFixed(2)}/hr
+                </td>
+                <td className={styles.right}>
+                  ${parseFloat(item.amount).toFixed(2)}
+                </td>
               </tr>
             ))}
           </tbody>
