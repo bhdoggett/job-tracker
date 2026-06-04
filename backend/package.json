@@ -11,7 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.0",
@@ -25,6 +26,7 @@
     "@types/node": "^20.14.0",
     "drizzle-kit": "^0.22.0",
     "tsx": "^4.15.0",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.8"
   }
 }
