@@ -56,7 +56,7 @@ invoicesRouter.post("/", async (c) => {
   if (periodStart)
     entryConditions.push(gte(timeEntries.startedAt, new Date(periodStart)));
   if (periodEnd)
-    entryConditions.push(lte(timeEntries.startedAt, new Date(periodEnd)));
+    entryConditions.push(lte(timeEntries.startedAt, new Date(periodEnd + "T23:59:59.999Z")));
 
   const entries = await db.query.timeEntries.findMany({
     where: and(...entryConditions),

@@ -71,7 +71,6 @@ export function InvoiceDetailPage() {
             <tr>
               <th>Date</th>
               <th>Task</th>
-              <th>Description</th>
               <th className={styles.right}>Hours</th>
               <th className={styles.right}>Rate</th>
               <th className={styles.right}>Amount</th>
@@ -85,8 +84,7 @@ export function InvoiceDetailPage() {
                     ? new Date(item.date + "T00:00:00").toLocaleDateString()
                     : "—"}
                 </td>
-                <td>{item.tasks ?? "—"}</td>
-                <td>{item.description}</td>
+                <td>{item.tasks || item.description || "—"}</td>
                 <td className={styles.right}>
                   {parseFloat(item.quantity).toFixed(2)}h
                 </td>
