@@ -1,8 +1,16 @@
 import { Hono } from "hono";
 import { db } from "../db/client";
-import { invoices, invoiceLineItems, timeEntries, projects } from "../db/schema/index";
+import {
+  invoices,
+  invoiceLineItems,
+  timeEntries,
+  timeEntryTasks,
+  tasks,
+  projects,
+} from "../db/schema/index";
 import { eq, and, gte, lte } from "drizzle-orm";
 import { parseId, rowOrNotFound } from "../utils/route-helpers";
+import { groupTimeEntriesByDay } from "../lib/invoice-helpers";
 
 export const invoicesRouter = new Hono();
 
@@ -43,16 +51,36 @@ invoicesRouter.post("/", async (c) => {
   });
   if (!project) return c.json({ error: "Project not found" }, 404);
 
-  // Query unbilled time entries in period
+  // Query time entries in period, filtering by startedAt
   const entryConditions = [eq(timeEntries.projectId, projectId)];
   if (periodStart)
-    entryConditions.push(gte(timeEntries.createdAt, new Date(periodStart)));
+    entryConditions.push(gte(timeEntries.startedAt, new Date(periodStart)));
   if (periodEnd)
-    entryConditions.push(lte(timeEntries.createdAt, new Date(periodEnd)));
+    entryConditions.push(lte(timeEntries.startedAt, new Date(periodEnd)));
 
   const entries = await db.query.timeEntries.findMany({
     where: and(...entryConditions),
   });
+
+  // Fetch task titles for each entry
+  const entriesWithTasks = await Promise.all(
+    entries.map(async (entry) => {
+      const entryTasks = await db
+        .select({ title: tasks.title })
+        .from(timeEntryTasks)
+        .innerJoin(tasks, eq(timeEntryTasks.taskId, tasks.id))
+        .where(eq(timeEntryTasks.timeEntryId, entry.id));
+      return {
+        startedAt: entry.startedAt ? entry.startedAt.toISOString() : null,
+        durationMin: entry.durationMin,
+        notes: entry.notes,
+        taskTitles: entryTasks.map((t) => t.title),
+      };
+    })
+  );
+
+  // Group entries by calendar day
+  const dayGroups = groupTimeEntriesByDay(entriesWithTasks);
 
   // Generate invoice number: INV-YYYY-NNN
   const year = new Date().getFullYear();
@@ -62,20 +90,20 @@ invoicesRouter.post("/", async (c) => {
   const seq = String(existing.length + 1).padStart(3, "0");
   const invoiceNumber = `INV-${year}-${seq}`;
 
-  // Compute line items from time entries
+  // Build line items from day groups
   const rate = parseFloat(project.rate);
   let subtotal = 0;
-  const lineItemsData = entries.map((entry) => {
-    const hours = (entry.durationMin ?? 0) / 60;
+  const lineItemsData = dayGroups.map((group) => {
+    const hours = group.totalMinutes / 60;
     const quantity = hours.toFixed(2);
-    const unitPrice = project.rate;
     const amount = (hours * rate).toFixed(2);
     subtotal += hours * rate;
     return {
-      timeEntryId: entry.id,
-      description: entry.notes ?? `Work on ${project.name}`,
+      date: group.date,
+      tasks: group.tasks || null,
+      description: group.description || `Work on ${project.name}`,
       quantity,
-      unitPrice,
+      unitPrice: project.rate,
       amount,
     };
   });
