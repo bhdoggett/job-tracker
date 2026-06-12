@@ -59,7 +59,7 @@ export function ProjectsPage() {
     e.preventDefault();
     const p = await projectsApi.create({
       ...form,
-      autoInvoiceFrequencyDays: parseInt(form.autoInvoiceFrequencyDays, 10),
+      autoInvoiceFrequencyDays: parseInt(form.autoInvoiceFrequencyDays || "14", 10),
     });
     setProjects((prev) => [p, ...prev]);
     setShowCreate(false);

@@ -51,7 +51,7 @@ export function ProjectDetailPage() {
     e.preventDefault();
     const updated = await projectsApi.update(projectId, {
       ...editForm,
-      autoInvoiceFrequencyDays: parseInt(editForm.autoInvoiceFrequencyDays, 10),
+      autoInvoiceFrequencyDays: parseInt(editForm.autoInvoiceFrequencyDays || "14", 10),
     });
     setProject(updated);
     setShowEditProject(false);
