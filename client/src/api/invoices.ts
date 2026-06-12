@@ -12,6 +12,7 @@ export const invoicesApi = {
   get: (id: number) => api.get<Invoice>(`/api/invoices/${id}`),
   create: (data: Partial<Invoice> & { projectId: number; issuedDate: string }) =>
     api.post<Invoice>("/api/invoices", data),
+  autoDraft: () => api.post<Invoice[]>("/api/invoices/auto-draft", {}),
   update: (id: number, data: Partial<Invoice>) =>
     api.patch<Invoice>(`/api/invoices/${id}`, data),
   delete: (id: number) =>
