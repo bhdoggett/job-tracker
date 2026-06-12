@@ -71,6 +71,13 @@
       "when": 1780584283232,
       "tag": "0009_mature_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1781289502568,
+      "tag": "0010_auto_invoice_fields",
+      "breakpoints": true
     }
   ]
 }
