@@ -29,7 +29,7 @@ export function ProjectDetailPage() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [showEditProject, setShowEditProject] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", clientName: "", description: "", status: "active" as Project["status"], rateType: "hourly" as Project["rateType"], rate: "" });
+  const [editForm, setEditForm] = useState({ name: "", clientName: "", description: "", status: "active" as Project["status"], rateType: "hourly" as Project["rateType"], rate: "", startDate: "", autoInvoiceEnabled: false, autoInvoiceFrequencyDays: "14" });
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [showEntryForm, setShowEntryForm] = useState(false);
@@ -41,7 +41,7 @@ export function ProjectDetailPage() {
     projectsApi.get(projectId).then((p) => {
       setProject(p);
       setNotes(p.notes ?? "");
-      setEditForm({ name: p.name, clientName: p.clientName, description: p.description ?? "", status: p.status, rateType: p.rateType, rate: p.rate });
+      setEditForm({ name: p.name, clientName: p.clientName, description: p.description ?? "", status: p.status, rateType: p.rateType, rate: p.rate, startDate: p.startDate, autoInvoiceEnabled: p.autoInvoiceEnabled, autoInvoiceFrequencyDays: String(p.autoInvoiceFrequencyDays) });
     }).catch(console.error);
     tasksApi.list({ projectId }).then(setTasks).catch(console.error);
     timeEntriesApi.list({ projectId }).then(setEntries).catch(console.error);
@@ -49,7 +49,10 @@ export function ProjectDetailPage() {
 
   const handleEditProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = await projectsApi.update(projectId, editForm);
+    const updated = await projectsApi.update(projectId, {
+      ...editForm,
+      autoInvoiceFrequencyDays: parseInt(editForm.autoInvoiceFrequencyDays, 10),
+    });
     setProject(updated);
     setShowEditProject(false);
   };
@@ -312,6 +315,31 @@ export function ProjectDetailPage() {
               onChange={(e) => setEditForm((f) => ({ ...f, rate: e.target.value }))}
               required
             />
+            <Input
+              label="Start Date"
+              type="date"
+              value={editForm.startDate}
+              onChange={(e) => setEditForm((f) => ({ ...f, startDate: e.target.value }))}
+              required
+            />
+            <label className={styles.checkboxField}>
+              <input
+                type="checkbox"
+                checked={editForm.autoInvoiceEnabled}
+                onChange={(e) => setEditForm((f) => ({ ...f, autoInvoiceEnabled: e.target.checked }))}
+              />
+              Auto-draft invoices
+            </label>
+            {editForm.autoInvoiceEnabled && (
+              <Input
+                label="Invoice every N days"
+                type="number"
+                min="1"
+                value={editForm.autoInvoiceFrequencyDays}
+                onChange={(e) => setEditForm((f) => ({ ...f, autoInvoiceFrequencyDays: e.target.value }))}
+                required
+              />
+            )}
             {deleteError && (
               <p style={{ color: "var(--color-danger, #e53e3e)", fontSize: "0.8rem", margin: "0.5rem 0" }}>{deleteError}</p>
             )}

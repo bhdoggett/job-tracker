@@ -219,3 +219,12 @@
   font-size: 0.875rem;
   padding: 1rem 0;
 }
+
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}

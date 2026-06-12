@@ -8,6 +8,10 @@ import { Input, Select, Textarea } from "../components/ui/Input";
 import { useNavigate } from "react-router-dom";
 import styles from "./ProjectsPage.module.css";
 
+function todayDateString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -20,6 +24,9 @@ export function ProjectsPage() {
     rateType: "hourly" as const,
     rate: "",
     status: "active" as const,
+    startDate: todayDateString(),
+    autoInvoiceEnabled: false,
+    autoInvoiceFrequencyDays: "14",
   });
   const navigate = useNavigate();
 
@@ -50,10 +57,23 @@ export function ProjectsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const p = await projectsApi.create(form);
+    const p = await projectsApi.create({
+      ...form,
+      autoInvoiceFrequencyDays: parseInt(form.autoInvoiceFrequencyDays, 10),
+    });
     setProjects((prev) => [p, ...prev]);
     setShowCreate(false);
-    setForm({ name: "", clientName: "", description: "", rateType: "hourly", rate: "", status: "active" });
+    setForm({
+      name: "",
+      clientName: "",
+      description: "",
+      rateType: "hourly",
+      rate: "",
+      status: "active",
+      startDate: todayDateString(),
+      autoInvoiceEnabled: false,
+      autoInvoiceFrequencyDays: "14",
+    });
   };
 
   return (
@@ -135,6 +155,31 @@ export function ProjectsPage() {
               onChange={(e) => setForm((f) => ({ ...f, rate: e.target.value }))}
               required
             />
+            <Input
+              label="Start Date"
+              type="date"
+              value={form.startDate}
+              onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+              required
+            />
+            <label className={styles.checkboxField}>
+              <input
+                type="checkbox"
+                checked={form.autoInvoiceEnabled}
+                onChange={(e) => setForm((f) => ({ ...f, autoInvoiceEnabled: e.target.checked }))}
+              />
+              Auto-draft invoices
+            </label>
+            {form.autoInvoiceEnabled && (
+              <Input
+                label="Invoice every N days"
+                type="number"
+                min="1"
+                value={form.autoInvoiceFrequencyDays}
+                onChange={(e) => setForm((f) => ({ ...f, autoInvoiceFrequencyDays: e.target.value }))}
+                required
+              />
+            )}
             <Button type="submit">Create Project</Button>
           </form>
         </Modal>

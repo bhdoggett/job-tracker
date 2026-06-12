@@ -32,6 +32,9 @@ projectsRouter.post("/", async (c) => {
       status: body.status ?? "active",
       rateType: body.rateType ?? "hourly",
       rate: body.rate,
+      startDate: body.startDate ?? new Date().toISOString().slice(0, 10),
+      autoInvoiceEnabled: body.autoInvoiceEnabled ?? false,
+      autoInvoiceFrequencyDays: body.autoInvoiceFrequencyDays ?? 14,
     })
     .returning();
   return c.json(row, 201);
