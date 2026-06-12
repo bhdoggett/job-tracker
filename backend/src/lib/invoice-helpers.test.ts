@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { groupTimeEntriesByDay } from "./invoice-helpers";
+import { groupTimeEntriesByDay, getMostRecentCompletedPeriod } from "./invoice-helpers";
 
 describe("groupTimeEntriesByDay", () => {
   it("groups multiple entries on the same day into one row", () => {
@@ -54,5 +54,39 @@ describe("groupTimeEntriesByDay", () => {
       { startedAt: null, durationMin: 60, notes: "x", taskTitles: [] },
     ]);
     expect(result).toHaveLength(0);
+  });
+});
+
+describe("getMostRecentCompletedPeriod", () => {
+  it("returns null before the first period has ended", () => {
+    expect(getMostRecentCompletedPeriod("2026-06-01", 14, "2026-06-10")).toBeNull();
+  });
+
+  it("returns null on the last day of the first period", () => {
+    // period 0 = [2026-06-01, 2026-06-14]; not "completed" until the 15th
+    expect(getMostRecentCompletedPeriod("2026-06-01", 14, "2026-06-14")).toBeNull();
+  });
+
+  it("returns period 0 the day after it ends", () => {
+    expect(getMostRecentCompletedPeriod("2026-06-01", 14, "2026-06-15")).toEqual({
+      periodStart: "2026-06-01",
+      periodEnd: "2026-06-14",
+    });
+  });
+
+  it("returns the latest completed period when multiple have elapsed", () => {
+    // periods: [06-01,06-14], [06-15,06-28], [06-29,07-12]
+    expect(getMostRecentCompletedPeriod("2026-06-01", 14, "2026-07-01")).toEqual({
+      periodStart: "2026-06-15",
+      periodEnd: "2026-06-28",
+    });
+  });
+
+  it("handles a frequency that crosses a month boundary", () => {
+    // period0 = [06-20,06-29], period1 = [06-30,07-09]
+    expect(getMostRecentCompletedPeriod("2026-06-20", 10, "2026-07-10")).toEqual({
+      periodStart: "2026-06-30",
+      periodEnd: "2026-07-09",
+    });
   });
 });

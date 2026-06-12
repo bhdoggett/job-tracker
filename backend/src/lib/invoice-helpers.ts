@@ -39,3 +39,34 @@ export function groupTimeEntriesByDay(entries: TimeEntryForGrouping[]): DayGroup
       };
     });
 }
+
+export function getMostRecentCompletedPeriod(
+  startDate: string,
+  frequencyDays: number,
+  today: string
+): { periodStart: string; periodEnd: string } | null {
+  const start = new Date(`${startDate}T00:00:00Z`);
+  const now = new Date(`${today}T00:00:00Z`);
+  const diffDays = Math.floor((now.getTime() - start.getTime()) / 86400000);
+
+  if (diffDays < frequencyDays) return null;
+
+  const k = Math.floor(diffDays / frequencyDays) - 1;
+  const periodStart = addDays(start, k * frequencyDays);
+  const periodEnd = addDays(start, (k + 1) * frequencyDays - 1);
+
+  return {
+    periodStart: toDateString(periodStart),
+    periodEnd: toDateString(periodEnd),
+  };
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date.getTime());
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
+function toDateString(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
