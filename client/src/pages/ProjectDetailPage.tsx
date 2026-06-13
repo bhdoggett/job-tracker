@@ -12,9 +12,10 @@ import { Input, Select, Textarea } from "../components/ui/Input";
 import { LogTimeModal } from "../components/LogTimeModal";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { DocsList } from "../components/DocsList";
+import { ProjectInvoicesTab } from "../components/ProjectInvoicesTab";
 import styles from "./ProjectDetailPage.module.css";
 
-type Tab = "tasks" | "time-entries" | "docs";
+type Tab = "tasks" | "time-entries" | "docs" | "invoices";
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -168,6 +169,12 @@ export function ProjectDetailPage() {
           >
             Docs
           </button>
+          <button
+            className={`${styles.tab}${tab === "invoices" ? ` ${styles.tabActive}` : ""}`}
+            onClick={() => setTab("invoices")}
+          >
+            Invoices
+          </button>
         </div>
 
         {tab === "tasks" && (
@@ -202,6 +209,7 @@ export function ProjectDetailPage() {
         )}
 
         {tab === "docs" && <DocsList projectId={projectId} />}
+        {tab === "invoices" && <ProjectInvoicesTab projectId={projectId} />}
       </div>
 
       <div className={`${styles.notesPanel}${notesOpen ? ` ${styles.notesPanelOpen}` : ""}`}>
