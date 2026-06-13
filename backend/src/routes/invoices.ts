@@ -122,6 +122,9 @@ invoicesRouter.get("/:id", async (c) => {
 invoicesRouter.patch("/:id", async (c) => {
   const id = parseId(c);
   const body = await c.req.json();
+  if (typeof body.viewedAt === "string") {
+    body.viewedAt = new Date(body.viewedAt);
+  }
   const [row] = await db
     .update(invoices)
     .set({ ...body, updatedAt: new Date() })
