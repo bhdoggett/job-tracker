@@ -121,7 +121,8 @@ export function ProjectsPage() {
                 <td>
                   {p.name}
                   {newInvoice && (
-                    <span
+                    <button
+                      type="button"
                       className={styles.newInvoiceBadge}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -129,7 +130,7 @@ export function ProjectsPage() {
                       }}
                     >
                       ● New invoice
-                    </span>
+                    </button>
                   )}
                 </td>
                 <td>{p.clientName}</td>
