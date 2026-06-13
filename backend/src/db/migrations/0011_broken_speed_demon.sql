@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS "invoices_project_period_unique" ON "invoices" USING btree ("project_id","period_start","period_end") WHERE "invoices"."period_start" is not null and "invoices"."period_end" is not null;
