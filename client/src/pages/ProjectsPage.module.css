@@ -58,3 +58,13 @@
   font-size: 0.875rem;
   cursor: pointer;
 }
+
+.newInvoiceBadge {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-primary-fg);
+  background: var(--color-primary-surface);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
