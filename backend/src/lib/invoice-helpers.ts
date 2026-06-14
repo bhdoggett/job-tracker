@@ -61,6 +61,16 @@ export function getMostRecentCompletedPeriod(
   };
 }
 
+export function nextInvoiceNumber(existingNumbers: string[], year: number): string {
+  const prefix = `INV-${year}-`;
+  const maxSeq = existingNumbers.reduce((max, num) => {
+    if (!num.startsWith(prefix)) return max;
+    const seq = parseInt(num.slice(prefix.length), 10);
+    return Number.isNaN(seq) ? max : Math.max(max, seq);
+  }, 0);
+  return `${prefix}${String(maxSeq + 1).padStart(3, "0")}`;
+}
+
 function addDays(date: Date, days: number): Date {
   const result = new Date(date.getTime());
   result.setUTCDate(result.getUTCDate() + days);

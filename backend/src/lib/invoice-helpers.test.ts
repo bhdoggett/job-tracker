@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { groupTimeEntriesByDay, getMostRecentCompletedPeriod } from "./invoice-helpers";
+import {
+  groupTimeEntriesByDay,
+  getMostRecentCompletedPeriod,
+  nextInvoiceNumber,
+} from "./invoice-helpers";
 
 describe("groupTimeEntriesByDay", () => {
   it("groups multiple entries on the same day into one row", () => {
@@ -88,5 +92,29 @@ describe("getMostRecentCompletedPeriod", () => {
       periodStart: "2026-06-30",
       periodEnd: "2026-07-09",
     });
+  });
+});
+
+describe("nextInvoiceNumber", () => {
+  it("starts at 001 when there are no existing invoices for the year", () => {
+    expect(nextInvoiceNumber([], 2026)).toBe("INV-2026-001");
+  });
+
+  it("increments past the highest existing sequence number, not the count", () => {
+    // Only one invoice exists, but it's numbered 003 (e.g. seeded out of order) —
+    // count-based generation would collide by producing 002, then 003 again.
+    expect(nextInvoiceNumber(["INV-2026-003"], 2026)).toBe("INV-2026-004");
+  });
+
+  it("fills gaps correctly by using the max, not the count", () => {
+    expect(nextInvoiceNumber(["INV-2026-001", "INV-2026-005"], 2026)).toBe("INV-2026-006");
+  });
+
+  it("ignores invoice numbers from other years", () => {
+    expect(nextInvoiceNumber(["INV-2025-010"], 2026)).toBe("INV-2026-001");
+  });
+
+  it("ignores numbers that don't match the expected format", () => {
+    expect(nextInvoiceNumber(["INV-2026-003", "CUSTOM-NUMBER"], 2026)).toBe("INV-2026-004");
   });
 });

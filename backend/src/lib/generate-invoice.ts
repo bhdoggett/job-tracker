@@ -7,8 +7,8 @@ import {
   tasks,
   projects,
 } from "../db/schema/index";
-import { eq, and, gte, lte } from "drizzle-orm";
-import { groupTimeEntriesByDay } from "./invoice-helpers";
+import { eq, and, gte, lte, like } from "drizzle-orm";
+import { groupTimeEntriesByDay, nextInvoiceNumber } from "./invoice-helpers";
 
 export interface GenerateInvoiceOptions {
   issuedDate: string;
@@ -60,13 +60,18 @@ export async function generateInvoiceForPeriod(
   // Group entries by calendar day
   const dayGroups = groupTimeEntriesByDay(entriesWithTasks);
 
-  // Generate invoice number: INV-YYYY-NNN
+  // Generate invoice number: INV-YYYY-NNN, scoped to the current year and
+  // based on the highest existing sequence number (not the count), so gaps
+  // or out-of-order existing numbers don't cause collisions.
   const year = new Date().getFullYear();
-  const existing = await db.query.invoices.findMany({
-    orderBy: (inv, { desc }) => [desc(inv.createdAt)],
+  const existingForYear = await db.query.invoices.findMany({
+    where: like(invoices.invoiceNumber, `INV-${year}-%`),
+    columns: { invoiceNumber: true },
   });
-  const seq = String(existing.length + 1).padStart(3, "0");
-  const invoiceNumber = `INV-${year}-${seq}`;
+  const invoiceNumber = nextInvoiceNumber(
+    existingForYear.map((inv) => inv.invoiceNumber),
+    year
+  );
 
   // Build line items from day groups
   const rate = parseFloat(project.rate);
