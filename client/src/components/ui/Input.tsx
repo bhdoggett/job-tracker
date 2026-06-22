@@ -36,7 +36,7 @@ export function Select({
 }: SelectProps) {
   return (
     <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+      {label && <label className={styles.label}>{label}</label>}
       <select className={styles.select} {...props}>
         {children}
       </select>

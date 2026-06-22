@@ -54,6 +54,19 @@ export function InvoiceDetailPage() {
 
   const rate = invoice.lineItems?.[0]?.unitPrice;
   const addressLines = profile ? formatAddress(profile) : [];
+  const totalHours = (invoice.lineItems ?? []).reduce(
+    (sum, item) => sum + parseFloat(item.quantity),
+    0,
+  );
+
+  const handlePrint = () => {
+    const companyName = profile?.businessName || profile?.yourName || "";
+    const parts = [companyName, invoice.invoiceNumber].filter(Boolean);
+    const originalTitle = document.title;
+    document.title = parts.join(" ");
+    window.print();
+    document.title = originalTitle;
+  };
 
   return (
     <div className={styles.page}>
@@ -71,7 +84,7 @@ export function InvoiceDetailPage() {
             <option value="sent">Sent</option>
             <option value="paid">Paid</option>
           </Select>
-          <Button variant="secondary" onClick={() => window.print()}>
+          <Button variant="secondary" onClick={handlePrint}>
             Print / PDF
           </Button>
         </div>
@@ -150,7 +163,7 @@ export function InvoiceDetailPage() {
 
         <div className={styles.totals}>
           <div className={styles.totalRow}>
-            <span>Subtotal</span>
+            <span>Subtotal ({totalHours} hrs)</span>
             <span>${parseFloat(invoice.subtotal).toFixed(2)}</span>
           </div>
           {parseFloat(invoice.taxRate) > 0 && (
