@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import type { Project, Task, TimeEntry } from "@job-tracker/shared";
+import type { Invoice, Project, Task, TimeEntry } from "@job-tracker/shared";
 import { projectsApi } from "../api/projects";
 import { tasksApi } from "../api/tasks";
 import { timeEntriesApi } from "../api/time-entries"; // used for listing entries
+import { invoicesApi } from "../api/invoices";
 import { TasksTable } from "../components/TasksTable";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -37,6 +38,10 @@ export function ProjectDetailPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
   const [taskForm, setTaskForm] = useState({ title: "", description: "", status: "todo" as Task["status"], dueDate: "" });
+  const [editingTaskMode, setEditingTaskMode] = useState(false);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [taskTimeLogs, setTaskTimeLogs] = useState<TimeEntry[]>([]);
+  const [loadingTaskLogs, setLoadingTaskLogs] = useState(false);
 
   useEffect(() => {
     projectsApi.get(projectId).then((p) => {
@@ -46,6 +51,7 @@ export function ProjectDetailPage() {
     }).catch(console.error);
     tasksApi.list({ projectId }).then(setTasks).catch(console.error);
     timeEntriesApi.list({ projectId }).then(setEntries).catch(console.error);
+    invoicesApi.list({ projectId }).then(setInvoices).catch(console.error);
   }, [projectId]);
 
   const handleEditProject = async (e: React.FormEvent) => {
@@ -83,14 +89,19 @@ export function ProjectDetailPage() {
 
   const openNewTask = () => {
     setEditingTask(null);
+    setEditingTaskMode(true);
     setTaskForm({ title: "", description: "", status: "todo", dueDate: "" });
+    setTaskTimeLogs([]);
     setShowTaskForm(true);
   };
 
   const openEditTask = (t: Task) => {
     setEditingTask(t);
+    setEditingTaskMode(false);
     setTaskForm({ title: t.title, description: t.description ?? "", status: t.status, dueDate: t.dueDate ?? "" });
     setShowTaskForm(true);
+    setLoadingTaskLogs(true);
+    timeEntriesApi.list({ taskId: t.id }).then(setTaskTimeLogs).catch(() => setTaskTimeLogs([])).finally(() => setLoadingTaskLogs(false));
   };
 
   const handleDeleteTask = async (t: Task) => {
@@ -118,6 +129,23 @@ export function ProjectDetailPage() {
 
   const totalHours =
     entries.reduce((sum, e) => sum + (e.durationMin ?? 0), 0) / 60;
+
+  const lastInvoiceDate = invoices.length > 0
+    ? invoices.reduce((latest, inv) => inv.issuedDate > latest ? inv.issuedDate : latest, invoices[0].issuedDate)
+    : null;
+
+  const hoursSinceLastInvoice = lastInvoiceDate
+    ? entries
+        .filter((e) => e.startedAt && e.startedAt > lastInvoiceDate)
+        .reduce((sum, e) => sum + (e.durationMin ?? 0), 0) / 60
+    : null;
+
+  const timeEntryInvoiceMap = new Map<number, typeof invoices[0]>();
+  for (const inv of invoices) {
+    for (const entryId of inv.timeEntryIds ?? []) {
+      timeEntryInvoiceMap.set(entryId, inv);
+    }
+  }
 
   if (!project) return <p>Loading...</p>;
 
@@ -197,17 +225,44 @@ export function ProjectDetailPage() {
               <Button size="sm" onClick={() => { setEditingEntry(null); setShowEntryForm(true); }}>
                 Log Time
               </Button>
+              {hoursSinceLastInvoice !== null && (
+                <span className={styles.sinceInvoice}>
+                  {hoursSinceLastInvoice.toFixed(1)}h since last invoice
+                </span>
+              )}
             </div>
-            {entries.map((e) => (
-              <div key={e.id} className={`${styles.card} ${styles.cardClickable}`} onClick={() => { setEditingEntry(e); setShowEntryForm(true); }}>
-                <span className={styles.entryDate}>{e.startedAt ? new Date(e.startedAt).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
-                <span className={styles.entryHours}>{((e.durationMin ?? 0) / 60).toFixed(2)}h</span>
-                <span className={styles.entryNotes}>{e.notes ?? "—"}</span>
-              </div>
-            ))}
             {entries.length === 0 && (
               <p className={styles.empty}>No time logged yet.</p>
             )}
+            {entries.length > 0 && (() => {
+              const unbilled = lastInvoiceDate ? entries.filter((e) => e.startedAt && e.startedAt > lastInvoiceDate) : entries;
+              const billed = lastInvoiceDate ? entries.filter((e) => !e.startedAt || e.startedAt <= lastInvoiceDate) : [];
+              const renderEntry = (e: TimeEntry) => {
+                const entryInvoice = timeEntryInvoiceMap.get(e.id);
+                const invoiceStatus = entryInvoice?.status;
+                return (
+                  <div key={e.id} className={`${styles.card} ${styles.cardClickable}`} onClick={() => { setEditingEntry(e); setShowEntryForm(true); }}>
+                    <span className={styles.entryDate}>{e.startedAt ? new Date(e.startedAt).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
+                    <span className={styles.entryHours}>{((e.durationMin ?? 0) / 60).toFixed(2)}h</span>
+                    <span className={styles.entryNotes}>{e.notes ?? "—"}</span>
+                    {(invoiceStatus === "sent" || invoiceStatus === "paid") && (
+                      <span className={`${styles.entryInvoiceBadge} ${styles[`entryInvoiceBadge_${invoiceStatus}`]}`}>{invoiceStatus}</span>
+                    )}
+                  </div>
+                );
+              };
+              return (
+                <>
+                  {unbilled.map(renderEntry)}
+                  {billed.length > 0 && lastInvoiceDate && (
+                    <div className={styles.invoiceDivider}>
+                      <span className={styles.invoiceDividerLabel}>invoiced through {new Date(lastInvoiceDate).toLocaleDateString(undefined, { timeZone: "UTC" })}</span>
+                    </div>
+                  )}
+                  {billed.map(renderEntry)}
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -231,50 +286,101 @@ export function ProjectDetailPage() {
       </div>
 
       {showTaskForm && (
-        <Modal title={editingTask ? "Edit Task" : "Add Task"} onClose={() => setShowTaskForm(false)}>
-          <form onSubmit={handleSubmitTask}>
-            <Input
-              label="Title"
-              value={taskForm.title}
-              onChange={(e) =>
-                setTaskForm((f) => ({ ...f, title: e.target.value }))
-              }
-              required
-            />
-            <Textarea
-              label="Description"
-              value={taskForm.description}
-              onChange={(e) =>
-                setTaskForm((f) => ({ ...f, description: e.target.value }))
-              }
-            />
-            <Input
-              label="Due Date (optional)"
-              type="date"
-              value={taskForm.dueDate}
-              onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
-            />
-            <Select
-              label="Status"
-              value={taskForm.status}
-              onChange={(e) =>
-                setTaskForm((f) => ({
-                  ...f,
-                  status: e.target.value as Task["status"],
-                }))
-              }
-            >
-              <option value="todo">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="done">Done</option>
-            </Select>
-            <div style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
-              <Button type="submit">{editingTask ? "Save Changes" : "Add Task"}</Button>
-              {editingTask && (
-                <Button type="button" onClick={() => handleDeleteTask(editingTask)}>Delete</Button>
+        <Modal
+          title={editingTask ? editingTask.title : "Add Task"}
+          onClose={() => { setShowTaskForm(false); setEditingTaskMode(false); }}
+          headerSlot={editingTask && (
+            <button className={styles.notesToggle} onClick={() => setEditingTaskMode((v) => !v)}>
+              {editingTaskMode ? "Done" : "Edit"}
+            </button>
+          )}
+        >
+          {(!editingTask || editingTaskMode) ? (
+            <form onSubmit={handleSubmitTask}>
+              <Input
+                label="Title"
+                value={taskForm.title}
+                onChange={(e) =>
+                  setTaskForm((f) => ({ ...f, title: e.target.value }))
+                }
+                required
+              />
+              <Textarea
+                label="Description"
+                value={taskForm.description}
+                onChange={(e) =>
+                  setTaskForm((f) => ({ ...f, description: e.target.value }))
+                }
+              />
+              <Input
+                label="Due Date (optional)"
+                type="date"
+                value={taskForm.dueDate}
+                onChange={(e) => setTaskForm((f) => ({ ...f, dueDate: e.target.value }))}
+              />
+              <Select
+                label="Status"
+                value={taskForm.status}
+                onChange={(e) =>
+                  setTaskForm((f) => ({
+                    ...f,
+                    status: e.target.value as Task["status"],
+                  }))
+                }
+              >
+                <option value="todo">To Do</option>
+                <option value="in_progress">In Progress</option>
+                <option value="done">Done</option>
+              </Select>
+              <div style={{ display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
+                <Button type="submit">{editingTask ? "Save Changes" : "Add Task"}</Button>
+                {editingTask && (
+                  <Button type="button" onClick={() => handleDeleteTask(editingTask)}>Delete</Button>
+                )}
+              </div>
+            </form>
+          ) : (
+            <div className={styles.taskDetailView}>
+              <div className={styles.taskDetailMeta}>
+                <Badge value={editingTask.status} />
+                {editingTask.dueDate && (
+                  <span className={styles.dueDate}>Due {editingTask.dueDate}</span>
+                )}
+              </div>
+              {editingTask.description && (
+                <p className={styles.taskDescription}>{editingTask.description}</p>
               )}
+              <div className={styles.taskTimeLogs}>
+                <div className={styles.taskTimeLogsHeader}>
+                  <span className={styles.taskTimeLogsTitle}>Time Logs</span>
+                  {taskTimeLogs.length > 0 && (
+                    <span className={styles.taskTimeLogsTotal}>
+                      {((taskTimeLogs.reduce((s, e) => s + (e.durationMin ?? 0), 0)) / 60).toFixed(1)}h
+                    </span>
+                  )}
+                </div>
+                {loadingTaskLogs ? (
+                  <p className={styles.empty}>Loading…</p>
+                ) : taskTimeLogs.length === 0 ? (
+                  <p className={styles.empty}>No time logged for this task.</p>
+                ) : (
+                  <div className={styles.taskTimeLogsList}>
+                    {taskTimeLogs.map((entry) => (
+                      <div key={entry.id} className={styles.card}>
+                        <span className={styles.entryDate}>
+                          {entry.startedAt ? new Date(entry.startedAt).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}
+                        </span>
+                        <span className={styles.entryHours}>
+                          {((entry.durationMin ?? 0) / 60).toFixed(2)}h
+                        </span>
+                        <span className={styles.entryNotes}>{entry.notes ?? "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </form>
+          )}
         </Modal>
       )}
 
@@ -364,6 +470,7 @@ export function ProjectDetailPage() {
           key={editingEntry?.id ?? "new"}
           projectId={projectId}
           existingEntry={editingEntry ?? undefined}
+          existingEntryInvoice={editingEntry ? timeEntryInvoiceMap.get(editingEntry.id) : undefined}
           allEntries={editingEntry ? entries : undefined}
           onNavigate={(entry) => setEditingEntry(entry)}
           onClose={() => { setShowEntryForm(false); setEditingEntry(null); }}
