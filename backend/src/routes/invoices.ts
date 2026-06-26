@@ -24,8 +24,16 @@ invoicesRouter.get("/", async (c) => {
   const rows = await db.query.invoices.findMany({
     where: conditions.length > 0 ? and(...conditions) : undefined,
     orderBy: (inv, { desc }) => [desc(inv.createdAt)],
+    with: { invoiceTimeEntries: true },
   });
-  return c.json(rows);
+
+  return c.json(
+    rows.map((row) => ({
+      ...row,
+      timeEntryIds: row.invoiceTimeEntries.map((ite) => ite.timeEntryId),
+      invoiceTimeEntries: undefined,
+    }))
+  );
 });
 
 invoicesRouter.post("/", async (c) => {

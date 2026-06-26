@@ -2,6 +2,7 @@ import { db } from "../db/client";
 import {
   invoices,
   invoiceLineItems,
+  invoiceTimeEntries,
   timeEntries,
   timeEntryTasks,
   tasks,
@@ -124,6 +125,12 @@ export async function generateInvoiceForPeriod(
             )
             .returning()
         : [];
+
+    if (entries.length > 0) {
+      await tx.insert(invoiceTimeEntries).values(
+        entries.map((e) => ({ invoiceId: invoice.id, timeEntryId: e.id }))
+      );
+    }
 
     return { ...invoice, lineItems: items };
   });

@@ -63,6 +63,7 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
   lineItems?: InvoiceLineItem[];
+  timeEntryIds?: number[];
 }
 
 export interface InvoiceLineItem {
