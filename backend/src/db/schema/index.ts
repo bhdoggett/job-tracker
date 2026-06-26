@@ -4,6 +4,7 @@ export * from "./time-entries";
 export * from "./time-entry-tasks";
 export * from "./invoices";
 export * from "./invoice-line-items";
+export * from "./invoice-time-entries";
 export * from "./profile";
 export * from "./expenses";
 export * from "./docs";
@@ -15,6 +16,7 @@ import { timeEntries } from "./time-entries";
 import { timeEntryTasks } from "./time-entry-tasks";
 import { invoices } from "./invoices";
 import { invoiceLineItems } from "./invoice-line-items";
+import { invoiceTimeEntries } from "./invoice-time-entries";
 import { expenses } from "./expenses";
 import { docs } from "./docs";
 
@@ -69,6 +71,7 @@ export const invoiceRelations = relations(invoices, ({ one, many }) => ({
     references: [projects.id],
   }),
   lineItems: many(invoiceLineItems),
+  invoiceTimeEntries: many(invoiceTimeEntries),
 }));
 
 export const invoiceLineItemRelations = relations(
@@ -84,3 +87,14 @@ export const invoiceLineItemRelations = relations(
     }),
   })
 );
+
+export const invoiceTimeEntryRelations = relations(invoiceTimeEntries, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [invoiceTimeEntries.invoiceId],
+    references: [invoices.id],
+  }),
+  timeEntry: one(timeEntries, {
+    fields: [invoiceTimeEntries.timeEntryId],
+    references: [timeEntries.id],
+  }),
+}));
