@@ -7,6 +7,7 @@ export const timeEntriesRouter = new Hono();
 
 timeEntriesRouter.get("/", async (c) => {
   const projectId = c.req.query("projectId");
+  const taskId = c.req.query("taskId");
   const from = c.req.query("from");
   const to = c.req.query("to");
 
@@ -16,11 +17,19 @@ timeEntriesRouter.get("/", async (c) => {
   if (from) conditions.push(gte(timeEntries.createdAt, new Date(from)));
   if (to) conditions.push(lte(timeEntries.createdAt, new Date(to)));
 
-  const rows = await db.query.timeEntries.findMany({
+  let rows = await db.query.timeEntries.findMany({
     where: conditions.length > 0 ? and(...conditions) : undefined,
     orderBy: (te, { desc }) => [desc(te.createdAt)],
     with: { timeEntryTasks: true },
   });
+
+  if (taskId) {
+    const tid = parseInt(taskId, 10);
+    rows = rows.filter((r) =>
+      r.timeEntryTasks.some((t: { taskId: number }) => t.taskId === tid)
+    );
+  }
+
   return c.json(rows.map((r) => ({
     ...r,
     taskIds: r.timeEntryTasks.map((t: { taskId: number }) => t.taskId),

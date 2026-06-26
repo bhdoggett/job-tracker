@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { Project, Task, TimeEntry } from "@job-tracker/shared";
+import type { Invoice, Project, Task, TimeEntry } from "@job-tracker/shared";
 import { projectsApi } from "../api/projects";
 import { tasksApi } from "../api/tasks";
 import { timeEntriesApi } from "../api/time-entries";
@@ -13,6 +13,8 @@ interface Props {
   projectId?: number;
   /** When provided, opens in edit mode pre-filled with this entry's data. */
   existingEntry?: TimeEntry;
+  /** Invoice that includes this entry, if any. */
+  existingEntryInvoice?: Invoice;
   /** Ordered list of entries for prev/next navigation (edit mode only). */
   allEntries?: TimeEntry[];
   onClose: () => void;
@@ -21,9 +23,18 @@ interface Props {
   onNavigate?: (entry: TimeEntry) => void;
 }
 
-export function LogTimeModal({ projectId, existingEntry, allEntries, onClose, onSaved, onNavigate }: Props) {
+function formatDuration(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (m === 0) return `${h}h`;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+export function LogTimeModal({ projectId, existingEntry, existingEntryInvoice, allEntries, onClose, onSaved, onNavigate }: Props) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [editMode, setEditMode] = useState(!existingEntry);
   const [showDone, setShowDone] = useState(false);
   const [markDoneIds, setMarkDoneIds] = useState<number[]>([]);
   const [addingTask, setAddingTask] = useState(false);
@@ -126,6 +137,9 @@ export function LogTimeModal({ projectId, existingEntry, allEntries, onClose, on
     }
   };
 
+  const entryTaskIds = existingEntry?.taskIds ?? (existingEntry?.taskId ? [existingEntry.taskId] : []);
+  const taskTitles = entryTaskIds.map((id) => tasks.find((t) => t.id === id)?.title).filter(Boolean) as string[];
+
   const navButtons = existingEntry && onNavigate ? (
     <>
       <button
@@ -149,12 +163,56 @@ export function LogTimeModal({ projectId, existingEntry, allEntries, onClose, on
     </>
   ) : null;
 
+  const editToggle = existingEntry ? (
+    <button type="button" className={styles.editToggle} onClick={() => setEditMode((v) => !v)}>
+      {editMode ? "Done" : "Edit"}
+    </button>
+  ) : null;
+
+  const headerSlot = (
+    <>
+      {navButtons}
+      {editToggle}
+    </>
+  );
+
   return (
     <Modal
-      title={existingEntry ? "Edit Time Entry" : "Log Time"}
+      title={existingEntry ? (editMode ? "Edit Time Entry" : "Time Entry") : "Log Time"}
       onClose={onClose}
-      headerSlot={navButtons}
+      headerSlot={headerSlot}
     >
+      {existingEntry && !editMode ? (
+        <div className={styles.detailView}>
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>Date</span>
+            <span>{existingEntry.startedAt ? new Date(existingEntry.startedAt).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</span>
+          </div>
+          <div className={styles.detailRow}>
+            <span className={styles.detailLabel}>Duration</span>
+            <span className={styles.detailDuration}>{formatDuration(existingEntry.durationMin ?? 0)}</span>
+          </div>
+          {taskTitles.length > 0 && (
+            <div className={styles.detailRow}>
+              <span className={styles.detailLabel}>Tasks</span>
+              <span className={styles.detailTasks}>{taskTitles.join(", ")}</span>
+            </div>
+          )}
+          {existingEntry.notes && (
+            <div className={styles.detailNotesRow}>
+              <span className={styles.detailLabel}>Notes</span>
+              <p className={styles.detailNotesText}>{existingEntry.notes}</p>
+            </div>
+          )}
+          {existingEntryInvoice && (existingEntryInvoice.status === "sent" || existingEntryInvoice.status === "paid") && (
+            <div className={styles.invoiceNotice}>
+              <span className={styles.invoiceNoticeLabel}>Invoice</span>
+              <span className={styles.invoiceNoticeNumber}>{existingEntryInvoice.invoiceNumber}</span>
+              <span className={`${styles.invoiceNoticeBadge} ${styles[`invoiceNoticeBadge_${existingEntryInvoice.status}`]}`}>{existingEntryInvoice.status}</span>
+            </div>
+          )}
+        </div>
+      ) : (
       <form onSubmit={handleSubmit}>
         {!projectId && (
           <Select
@@ -294,8 +352,16 @@ export function LogTimeModal({ projectId, existingEntry, allEntries, onClose, on
           value={form.notes}
           onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
         />
+        {existingEntryInvoice && (existingEntryInvoice.status === "sent" || existingEntryInvoice.status === "paid") && (
+          <div className={styles.invoiceNotice}>
+            <span className={styles.invoiceNoticeLabel}>Invoice</span>
+            <span className={styles.invoiceNoticeNumber}>{existingEntryInvoice.invoiceNumber}</span>
+            <span className={`${styles.invoiceNoticeBadge} ${styles[`invoiceNoticeBadge_${existingEntryInvoice.status}`]}`}>{existingEntryInvoice.status}</span>
+          </div>
+        )}
         <Button type="submit">{existingEntry ? "Save Changes" : "Log Time"}</Button>
       </form>
+      )}
     </Modal>
   );
 }

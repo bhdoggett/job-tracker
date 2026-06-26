@@ -145,3 +145,103 @@
   cursor: pointer;
   white-space: nowrap;
 }
+
+.editToggle {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.625rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-family: inherit;
+}
+
+.editToggle:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.detailView {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detailRow {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.detailLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.detailDuration {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.detailTasks {
+  font-size: 0.875rem;
+}
+
+.detailNotesRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.detailNotesText {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.invoiceNotice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.invoiceNoticeLabel {
+  color: var(--color-text-muted);
+}
+
+.invoiceNoticeNumber {
+  font-weight: 600;
+  flex: 1;
+}
+
+.invoiceNoticeBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+}
+
+.invoiceNoticeBadge_sent {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.invoiceNoticeBadge_paid {
+  background: color-mix(in srgb, #22c55e 12%, transparent);
+  color: #16a34a;
+}

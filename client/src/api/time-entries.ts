@@ -2,9 +2,10 @@ import type { TimeEntry } from "@job-tracker/shared";
 import { api } from "./client";
 
 export const timeEntriesApi = {
-  list: (params?: { projectId?: number; from?: string; to?: string }) => {
+  list: (params?: { projectId?: number; taskId?: number; from?: string; to?: string }) => {
     const qs = new URLSearchParams();
     if (params?.projectId) qs.set("projectId", String(params.projectId));
+    if (params?.taskId) qs.set("taskId", String(params.taskId));
     if (params?.from) qs.set("from", params.from);
     if (params?.to) qs.set("to", params.to);
     const q = qs.toString();

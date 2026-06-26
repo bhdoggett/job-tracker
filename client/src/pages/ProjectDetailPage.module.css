@@ -160,7 +160,15 @@
 }
 
 .tabHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.75rem;
+}
+
+.sinceInvoice {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }
 
 .card {
@@ -227,4 +235,97 @@
   margin-bottom: 1rem;
   font-size: 0.875rem;
   cursor: pointer;
+}
+
+.taskDetailView {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.taskDetailMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.taskDescription {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.taskTimeLogs {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+.taskTimeLogsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.taskTimeLogsTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.taskTimeLogsTotal {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.taskTimeLogsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.entryInvoiceBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.entryInvoiceBadge_sent {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+}
+
+.entryInvoiceBadge_paid {
+  background: color-mix(in srgb, #22c55e 12%, transparent);
+  color: #16a34a;
+}
+
+.invoiceDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.invoiceDivider::before,
+.invoiceDivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.invoiceDividerLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }

@@ -10,3 +10,102 @@
   font-weight: 600;
 }
 
+.taskDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.taskMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.projectLink {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  padding: 0;
+}
+
+.projectLink:hover {
+  text-decoration: underline;
+}
+
+.dueDate {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.timeLogsSection {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+.timeLogsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.timeLogsTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.totalTime {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.emptyLogs {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.logsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.logsTable th,
+.logsTable td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.8rem;
+}
+
+.logsTable th {
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.right {
+  text-align: right !important;
+}
+
+.notes {
+  color: var(--color-text-muted);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
