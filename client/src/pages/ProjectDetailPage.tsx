@@ -235,8 +235,8 @@ export function ProjectDetailPage() {
               <p className={styles.empty}>No time logged yet.</p>
             )}
             {entries.length > 0 && (() => {
-              const unbilled = lastInvoiceDate ? entries.filter((e) => e.startedAt && e.startedAt > lastInvoiceDate) : entries;
-              const billed = lastInvoiceDate ? entries.filter((e) => !e.startedAt || e.startedAt <= lastInvoiceDate) : [];
+              const unbilled = entries.filter((e) => !timeEntryInvoiceMap.has(e.id));
+              const billed = entries.filter((e) => timeEntryInvoiceMap.has(e.id));
               const renderEntry = (e: TimeEntry) => {
                 const entryInvoice = timeEntryInvoiceMap.get(e.id);
                 const invoiceStatus = entryInvoice?.status;
@@ -254,9 +254,9 @@ export function ProjectDetailPage() {
               return (
                 <>
                   {unbilled.map(renderEntry)}
-                  {billed.length > 0 && lastInvoiceDate && (
+                  {billed.length > 0 && (
                     <div className={styles.invoiceDivider}>
-                      <span className={styles.invoiceDividerLabel}>invoiced through {new Date(lastInvoiceDate).toLocaleDateString(undefined, { timeZone: "UTC" })}</span>
+                      <span className={styles.invoiceDividerLabel}>previously invoiced</span>
                     </div>
                   )}
                   {billed.map(renderEntry)}
