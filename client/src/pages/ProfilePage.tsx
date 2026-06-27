@@ -61,10 +61,12 @@ export function ProfilePage() {
   };
 
   return (
-    <div className={styles.page}>
-      <h1 className={styles.title}>My Profile</h1>
-      <p className={styles.subtitle}>Used on invoices sent to clients.</p>
-
+    <>
+      <div className={styles.header}>
+        <h1 className={styles.title}>My Profile</h1>
+        <p className={styles.subtitle}>Used on invoices sent to clients.</p>
+      </div>
+      <div className={styles.page}>
       <form onSubmit={handleSubmit} className={styles.form}>
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Business</h2>
@@ -126,5 +128,6 @@ export function ProfilePage() {
         </div>
       </form>
     </div>
+    </>
   );
 }

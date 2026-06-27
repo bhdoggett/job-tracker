@@ -6,23 +6,23 @@
 
 :root {
   /* ── Base surfaces ── */
-  --color-bg: #f8f9fa;
+  --color-bg: #f7f6f2;
   --color-surface: #ffffff;
-  --color-bg-hover: rgba(0, 0, 0, 0.06);
+  --color-bg-hover: rgba(0, 0, 0, 0.05);
 
   /* ── Borders ── */
-  --color-border: #e1e5e9;
-  --color-border-strong: #999999;
+  --color-border: #e4e4e7;
+  --color-border-strong: #a1a1aa;
 
   /* ── Text ── */
-  --color-text: #1a1a2e;
-  --color-text-muted: #6b7280;
+  --color-text: #111111;
+  --color-text-muted: #71717a;
 
   /* ── Brand ── */
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-surface: #e0e7ff;
-  --color-primary-fg: #4338ca;
+  --color-primary: #d97706;
+  --color-primary-hover: #b45309;
+  --color-primary-surface: #fef3c7;
+  --color-primary-fg: #92400e;
 
   /* ── Semantic states ── */
   --color-danger: #dc2626;
@@ -33,22 +33,22 @@
   --color-success-fg: #15803d;
 
   --color-warning: #d97706;
-  --color-warning-surface: #fef9c3;
-  --color-warning-fg: #854d0e;
+  --color-warning-surface: #fef3c7;
+  --color-warning-fg: #92400e;
 
   --color-info-surface: #dbeafe;
   --color-info-fg: #1d4ed8;
 
-  --color-neutral-surface: #f3f4f6;
-  --color-neutral-fg: #6b7280;
+  --color-neutral-surface: #f4f4f5;
+  --color-neutral-fg: #71717a;
 
   /* ── Typography ── */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
   /* ── Misc ── */
-  --radius: 6px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --radius: 4px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 body {

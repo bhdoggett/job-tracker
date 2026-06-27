@@ -40,7 +40,7 @@ function NavGroup({ label, links }: { label: string; links: { to: string; label:
 export function Sidebar() {
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.brand}>Job Tracker</div>
+      <div className={styles.brand}>Jobz</div>
       <nav className={styles.nav}>
         <NavGroup label="Client Work" links={projectLinks} />
         <NavGroup label="General" links={businessLinks} />

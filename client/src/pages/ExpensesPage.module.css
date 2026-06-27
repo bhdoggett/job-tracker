@@ -2,7 +2,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  margin: -2rem -2rem 2rem;
+  padding: 1.25rem 2rem;
 }
 
 .title {

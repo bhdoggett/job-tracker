@@ -1,3 +1,10 @@
+.header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  margin: -2rem -2rem 2rem;
+  padding: 1.25rem 2rem;
+}
+
 .page {
   max-width: 640px;
 }
@@ -5,13 +12,12 @@
 .title {
   font-size: 1.5rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .subtitle {
   color: var(--color-text-muted);
   font-size: 0.875rem;
-  margin-bottom: 2rem;
 }
 
 .form {
