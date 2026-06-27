@@ -2,8 +2,7 @@
   background: #18181b;
   display: flex;
   align-items: flex-end;
-  padding: 0 1.5rem;
-  padding-top: 0.75rem;
+  padding: 0.75rem 1.5rem 0;
   gap: 2rem;
   flex-shrink: 0;
   border-bottom: 2px solid #2e2e32;
@@ -15,7 +14,7 @@
   text-decoration: none;
   flex-shrink: 0;
   align-self: center;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.625rem;
 }
 
 .brand:hover {
@@ -39,17 +38,14 @@
   color: #a1a1aa;
   text-decoration: none;
   font-size: 0.875rem;
-  /* shorter inactive tabs */
-  padding: 0.3rem 1.125rem 0.4rem;
+  padding: 0.35rem 1.25rem 0.4rem;
   display: block;
   background: #27272a;
-  border-radius: 8px 8px 0 0;
-  /* angled sides: trapezoid wider at bottom */
-  clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%);
+  /* SVG clip-path: angled sides + rounded top corners, scales per element */
+  clip-path: url(#jobz-tab);
   transition: color 0.15s, background 0.15s;
   position: relative;
   z-index: 0;
-  /* overlap so active tab covers the angled edge of adjacent ones */
   margin-left: -6px;
 }
 
@@ -57,8 +53,12 @@
   margin-left: 0;
 }
 
+.spacer {
+  flex: 1;
+}
+
 .link:hover {
-  color: #a1a1aa;
+  color: #d4d4d8;
   background: #323236;
   text-decoration: none;
   z-index: 1;
@@ -68,30 +68,9 @@
   color: var(--color-text) !important;
   background: var(--color-bg) !important;
   font-weight: 500;
-  /* taller top padding makes it stick up above inactive tabs */
-  padding-top: 0.65rem !important;
-  /* pull down 2px to cover the nav border-bottom */
+  padding-top: 0.6rem !important;
   margin-bottom: -2px;
   z-index: 2;
-}
-
-.profileLink {
-  color: #a1a1aa;
-  text-decoration: none;
-  font-size: 0.8rem;
-  padding: 0.3rem 1.125rem 0.4rem;
-  display: block;
-  background: #27272a;
-  border-radius: 8px 8px 0 0;
-  clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%);
-  transition: color 0.15s;
-  flex-shrink: 0;
-  margin-left: -6px;
-}
-
-.profileLink:hover {
-  color: #a1a1aa;
-  text-decoration: none;
 }
 
 @media print {
