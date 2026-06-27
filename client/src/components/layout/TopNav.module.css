@@ -2,9 +2,10 @@
   background: #18181b;
   display: flex;
   align-items: flex-end;
-  padding: 0.75rem 1.5rem 0;
+  padding: 0.625rem 1.5rem 0;
   gap: 2rem;
   flex-shrink: 0;
+  border-bottom: 2px solid #27272a;
 }
 
 .brand {
@@ -13,7 +14,7 @@
   text-decoration: none;
   flex-shrink: 0;
   align-self: center;
-  margin-bottom: 0.5rem;
+  padding-bottom: 0.625rem;
 }
 
 .brand:hover {
@@ -29,33 +30,40 @@
 .links {
   display: flex;
   align-items: flex-end;
-  gap: 3px;
+  gap: 2px;
   flex: 1;
 }
 
 .link {
-  color: #71717a;
+  color: #52525b;
   text-decoration: none;
   font-size: 0.875rem;
-  padding: 0.45rem 1.375rem;
+  padding: 0.35rem 1rem;
   display: block;
-  background: #27272a;
-  /* trapezoid: narrow top, wide bottom — classic folder tab shape */
-  clip-path: polygon(10px 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%);
+  background: #222225;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid #2e2e32;
+  border-bottom: none;
   transition: color 0.15s, background 0.15s;
   position: relative;
+  /* sit flush at the nav bottom */
+  margin-bottom: 0;
 }
 
 .link:hover {
   color: #a1a1aa;
-  background: #3f3f46;
+  background: #2d2d31;
   text-decoration: none;
 }
 
 .linkActive {
   color: var(--color-text) !important;
   background: var(--color-bg) !important;
+  border-color: #3a3a3e !important;
   font-weight: 500;
+  /* raise the active tab 2px above the others */
+  padding-top: 0.5rem;
+  margin-bottom: -2px;
   z-index: 1;
 }
 
@@ -63,10 +71,12 @@
   color: #52525b;
   text-decoration: none;
   font-size: 0.8rem;
-  padding: 0.45rem 1.375rem;
+  padding: 0.35rem 1rem;
   display: block;
-  background: #27272a;
-  clip-path: polygon(10px 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%);
+  background: #222225;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid #2e2e32;
+  border-bottom: none;
   transition: color 0.15s;
   flex-shrink: 0;
 }
