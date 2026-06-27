@@ -8,7 +8,7 @@ import { Button } from "../components/ui/Button";
 import { Select, Input } from "../components/ui/Input";
 import styles from "./TimesheetsPage.module.css";
 
-export function TimesheetsPage() {
+export function TimesheetsPage({ embedded }: { embedded?: boolean } = {}) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
@@ -85,8 +85,28 @@ export function TimesheetsPage() {
       </div>
 
       {/* Screen controls — hidden when printing */}
-      <div className={styles.controls}>
-        <h1 className={styles.title}>Timesheets</h1>
+      {!embedded ? (
+        <div className={styles.controls}>
+          <h1 className={styles.title}>Timesheets</h1>
+          <div className={styles.filters}>
+            <Select
+              label="Project"
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+            >
+              <option value="">Select a project…</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} — {p.clientName}
+                </option>
+              ))}
+            </Select>
+            <Input label="From" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            <Input label="To" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            <Button onClick={() => window.print()} disabled={!projectId}>Print / Save PDF</Button>
+          </div>
+        </div>
+      ) : (
         <div className={styles.filters}>
           <Select
             label="Project"
@@ -100,26 +120,10 @@ export function TimesheetsPage() {
               </option>
             ))}
           </Select>
-          <Input
-            label="From"
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
-          <Input
-            label="To"
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
-          <Button
-            onClick={() => window.print()}
-            disabled={!projectId}
-          >
-            Print / Save PDF
-          </Button>
+          <Input label="From" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <Input label="To" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
         </div>
-      </div>
+      )}
 
       <table className={styles.table}>
         <thead>

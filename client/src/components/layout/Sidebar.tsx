@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { JobzLogo } from "./JobzLogo";
 import styles from "./Sidebar.module.css";
 
 const projectLinks = [
@@ -40,7 +41,7 @@ function NavGroup({ label, links }: { label: string; links: { to: string; label:
 export function Sidebar() {
   return (
     <aside className={styles.sidebar}>
-      <div className={styles.brand}>Jobz</div>
+      <JobzLogo className={styles.logo} />
       <nav className={styles.nav}>
         <NavGroup label="Client Work" links={projectLinks} />
         <NavGroup label="General" links={businessLinks} />

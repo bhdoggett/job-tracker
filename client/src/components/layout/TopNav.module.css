@@ -1,0 +1,85 @@
+.nav {
+  background: #18181b;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.625rem 1.5rem 0;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+  align-self: center;
+  padding-bottom: 0.625rem;
+}
+
+.brand:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.logo {
+  height: 32px;
+  width: auto;
+}
+
+.links {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.125rem;
+  flex: 1;
+}
+
+.link {
+  color: #71717a;
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: 0.45rem 1rem;
+  border-radius: 4px 4px 0 0;
+  transition: color 0.15s, background 0.15s;
+  display: block;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: none;
+  position: relative;
+}
+
+.link:hover {
+  color: #a1a1aa;
+  background: rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+}
+
+.linkActive {
+  color: var(--color-text) !important;
+  background: var(--color-bg) !important;
+  font-weight: 500;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  z-index: 1;
+}
+
+.profileLink {
+  color: #52525b;
+  text-decoration: none;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 4px 4px 0 0;
+  transition: color 0.15s;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.profileLink:hover {
+  color: #a1a1aa;
+  text-decoration: none;
+}
+
+@media print {
+  .nav {
+    display: none;
+  }
+}

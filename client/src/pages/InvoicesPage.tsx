@@ -9,7 +9,7 @@ import { Modal } from "../components/ui/Modal";
 import { Input, Select } from "../components/ui/Input";
 import styles from "./InvoicesPage.module.css";
 
-export function InvoicesPage() {
+export function InvoicesPage({ embedded }: { embedded?: boolean } = {}) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -125,10 +125,12 @@ export function InvoicesPage() {
 
   return (
     <div>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Invoices</h1>
-        <Button onClick={() => setShowCreate(true)}>New Invoice</Button>
-      </div>
+      {!embedded && (
+        <div className={styles.header}>
+          <h1 className={styles.title}>Invoices</h1>
+          <Button onClick={() => setShowCreate(true)}>New Invoice</Button>
+        </div>
+      )}
 
       <table className={styles.table}>
         <thead>

@@ -1,0 +1,31 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <!-- App background -->
+  <rect width="512" height="512" rx="112" fill="#18181b"/>
+  <!-- Handle -->
+  <path
+    d="M 172 228 L 172 152 Q 172 104 256 104 Q 340 104 340 152 L 340 228"
+    fill="none"
+    stroke="#fbbf24"
+    stroke-width="20"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Body -->
+  <rect x="56" y="216" width="400" height="240" rx="28"
+    fill="#111111"
+    stroke="#fbbf24"
+    stroke-width="18"
+  />
+  <!-- Jobz text centered in body -->
+  <text
+    x="256"
+    y="340"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    font-family="DM Sans, -apple-system, BlinkMacSystemFont, sans-serif"
+    font-weight="700"
+    font-size="152"
+    fill="#fbbf24"
+    letter-spacing="-5"
+  >Jobz</text>
+</svg>

@@ -18,7 +18,7 @@ function formatDuration(mins: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
-export function TasksPage() {
+export function TasksPage({ embedded }: { embedded?: boolean } = {}) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -75,10 +75,12 @@ export function TasksPage() {
 
   return (
     <div>
-      <div className={styles.header}>
-        <h1 className={styles.title}>All Tasks</h1>
-        <Button onClick={() => { setForm(BLANK); setShowForm(true); }}>Add Task</Button>
-      </div>
+      {!embedded && (
+        <div className={styles.header}>
+          <h1 className={styles.title}>All Tasks</h1>
+          <Button onClick={() => { setForm(BLANK); setShowForm(true); }}>Add Task</Button>
+        </div>
+      )}
 
       <TasksTable
         tasks={tasks}

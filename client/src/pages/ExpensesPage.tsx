@@ -29,7 +29,7 @@ function truncate(s: string | null | undefined, max = 28): string {
   return s.length > max ? s.slice(0, max) + "…" : s;
 }
 
-export function ExpensesPage() {
+export function ExpensesPage({ embedded }: { embedded?: boolean } = {}) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -225,12 +225,14 @@ export function ExpensesPage() {
 
   return (
     <div>
-      <div className={styles.header}>
-        <h1 className={styles.title}>
-          Expenses <span className={styles.total}>${total.toFixed(2)} total</span>
-        </h1>
-        <Button onClick={openNew}>Add Expense</Button>
-      </div>
+      {!embedded && (
+        <div className={styles.header}>
+          <h1 className={styles.title}>
+            Expenses <span className={styles.total}>${total.toFixed(2)} total</span>
+          </h1>
+          <Button onClick={openNew}>Add Expense</Button>
+        </div>
+      )}
 
       <table className={styles.table}>
         <thead>

@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
+import { TopNav } from "./TopNav";
 import styles from "./Layout.module.css";
 
 export function Layout() {
   return (
     <div className={styles.layout}>
-      <Sidebar />
+      <TopNav />
       <main className={styles.main}>
         <Outlet />
       </main>

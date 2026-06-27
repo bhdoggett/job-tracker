@@ -38,7 +38,8 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1280,
     height: 800,
-    title: "Job Tracker",
+    title: "Jobz",
+    icon: path.join(__dirname, "assets", "icon.png"),
     webPreferences: { nodeIntegration: false, contextIsolation: true },
   });
 
