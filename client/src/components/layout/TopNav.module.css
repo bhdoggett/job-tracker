@@ -2,7 +2,8 @@
   background: #18181b;
   display: flex;
   align-items: flex-end;
-  padding: 0.625rem 1.5rem 0;
+  padding: 0 1.5rem;
+  padding-top: 0.75rem;
   gap: 2rem;
   flex-shrink: 0;
   border-bottom: 2px solid #2e2e32;
@@ -14,7 +15,7 @@
   text-decoration: none;
   flex-shrink: 0;
   align-self: center;
-  padding-bottom: 0.625rem;
+  padding-bottom: 0.5rem;
 }
 
 .brand:hover {
@@ -35,19 +36,21 @@
 }
 
 .link {
-  color: #52525b;
+  color: #a1a1aa;
   text-decoration: none;
   font-size: 0.875rem;
-  padding: 0.4rem 1.25rem;
+  /* shorter inactive tabs */
+  padding: 0.3rem 1.125rem 0.4rem;
   display: block;
-  background: #222225;
-  /* slight trapezoid: 7px angle, wider at bottom */
-  clip-path: polygon(7px 0%, calc(100% - 7px) 0%, 100% 100%, 0% 100%);
+  background: #27272a;
+  border-radius: 8px 8px 0 0;
+  /* angled sides: trapezoid wider at bottom */
+  clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%);
   transition: color 0.15s, background 0.15s;
   position: relative;
-  /* overlap neighbours so the stack reads as layered folder tabs */
-  margin-left: -5px;
   z-index: 0;
+  /* overlap so active tab covers the angled edge of adjacent ones */
+  margin-left: -6px;
 }
 
 .link:first-child {
@@ -56,7 +59,7 @@
 
 .link:hover {
   color: #a1a1aa;
-  background: #2d2d31;
+  background: #323236;
   text-decoration: none;
   z-index: 1;
 }
@@ -65,22 +68,25 @@
   color: var(--color-text) !important;
   background: var(--color-bg) !important;
   font-weight: 500;
-  /* raise and bring to front */
-  padding-top: 0.55rem;
+  /* taller top padding makes it stick up above inactive tabs */
+  padding-top: 0.65rem !important;
+  /* pull down 2px to cover the nav border-bottom */
   margin-bottom: -2px;
   z-index: 2;
 }
 
 .profileLink {
-  color: #52525b;
+  color: #a1a1aa;
   text-decoration: none;
   font-size: 0.8rem;
-  padding: 0.4rem 1.25rem;
+  padding: 0.3rem 1.125rem 0.4rem;
   display: block;
-  background: #222225;
-  clip-path: polygon(7px 0%, calc(100% - 7px) 0%, 100% 100%, 0% 100%);
+  background: #27272a;
+  border-radius: 8px 8px 0 0;
+  clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%);
   transition: color 0.15s;
   flex-shrink: 0;
+  margin-left: -6px;
 }
 
 .profileLink:hover {
