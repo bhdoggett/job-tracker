@@ -12,7 +12,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "export": "tsx src/cli/backup.ts export",
+    "import": "tsx src/cli/backup.ts import"
   },
   "dependencies": {
     "@hono/node-server": "^1.12.0",
