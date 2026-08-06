@@ -1,6 +1,9 @@
 // backend/src/lib/backup/order.test.ts
 import { describe, it, expect } from "vitest";
+import { is } from "drizzle-orm";
+import { PgTable, getTableConfig } from "drizzle-orm/pg-core";
 import { insertOrder, deleteOrder, tableByName, hasSerialPrimaryKey } from "./order";
+import * as schema from "../../db/schema/index";
 
 describe("insertOrder", () => {
   it("includes exactly the 10 application tables", () => {
@@ -17,6 +20,16 @@ describe("insertOrder", () => {
       "time_entries",
       "time_entry_tasks",
     ]);
+  });
+
+  it("derives its table set from every PgTable exported by the schema module (not a hand-maintained list)", () => {
+    const schemaTableNames = Object.values(schema)
+      .filter((value): value is PgTable => is(value, PgTable))
+      .map((table) => getTableConfig(table).name)
+      .sort();
+
+    expect(schemaTableNames.length).toBeGreaterThan(0);
+    expect([...insertOrder()].sort()).toEqual(schemaTableNames);
   });
 
   it("orders projects before its dependents", () => {

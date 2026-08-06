@@ -1,18 +1,22 @@
-import { getTableConfig, type PgTable } from "drizzle-orm/pg-core";
+import { is } from "drizzle-orm";
+import { getTableConfig, PgTable } from "drizzle-orm/pg-core";
 import * as schema from "../../db/schema/index";
 
-const TABLES: Record<string, PgTable> = {
-  profile: schema.profile,
-  projects: schema.projects,
-  tasks: schema.tasks,
-  time_entries: schema.timeEntries,
-  time_entry_tasks: schema.timeEntryTasks,
-  docs: schema.docs,
-  expenses: schema.expenses,
-  invoices: schema.invoices,
-  invoice_line_items: schema.invoiceLineItems,
-  invoice_time_entries: schema.invoiceTimeEntries,
-};
+// Derived (not hand-maintained) so that a table added to db/schema/ is
+// automatically included in every export/import/delete, with no separate
+// entry to remember to add here. See order.test.ts for a test that asserts
+// this set covers every PgTable exported from the schema module.
+function deriveTables(): Record<string, PgTable> {
+  const tables: Record<string, PgTable> = {};
+  for (const value of Object.values(schema)) {
+    if (is(value, PgTable)) {
+      tables[getTableConfig(value).name] = value;
+    }
+  }
+  return tables;
+}
+
+const TABLES: Record<string, PgTable> = deriveTables();
 
 export function tableByName(name: string): PgTable {
   const table = TABLES[name];
