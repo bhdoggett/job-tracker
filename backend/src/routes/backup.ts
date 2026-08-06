@@ -9,6 +9,7 @@ import { env } from "../lib/env";
 import { UPLOADS_DIR, SAFETY_EXPORT_DIR } from "../lib/paths";
 import { exportData, EmptyExportError } from "../lib/backup/export";
 import { importData, EmptyImportError } from "../lib/backup/import";
+import { inspectArchive, ArchiveUnreadableError } from "../lib/backup/inspect";
 import { ManifestValidationError } from "../lib/backup/manifest";
 import { RowCountMismatchError } from "../lib/backup/import-helpers";
 
@@ -33,6 +34,28 @@ backupRouter.get("/export", async (c) => {
     return c.body(fileData);
   } catch (err) {
     if (err instanceof EmptyExportError) return c.json({ error: err.message }, 409);
+    throw err;
+  } finally {
+    await rm(stagingDir, { recursive: true, force: true });
+  }
+});
+
+// Read-only preview of an archive, used by the restore confirmation UI.
+// Validates the ENCRYPTION_KEY fingerprint here so a key mismatch is reported
+// before the user commits to replacing their data.
+backupRouter.post("/inspect", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "file required" }, 400);
+
+  const stagingDir = await mkdtemp(join(tmpdir(), "job-tracker-inspect-"));
+  const archivePath = join(stagingDir, "inspect.tar.gz");
+  try {
+    await writeFile(archivePath, Buffer.from(await file.arrayBuffer()));
+    return c.json(await inspectArchive(db, { archivePath }));
+  } catch (err) {
+    if (err instanceof ArchiveUnreadableError) return c.json({ error: err.message }, 400);
+    if (err instanceof ManifestValidationError) return c.json({ error: err.message }, 400);
     throw err;
   } finally {
     await rm(stagingDir, { recursive: true, force: true });
