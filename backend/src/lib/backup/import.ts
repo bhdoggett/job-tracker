@@ -15,6 +15,7 @@ import {
   RowCountMismatchError,
 } from "./import-helpers";
 import { exportData } from "./export";
+import { countAllRows } from "./counts";
 
 export class EmptyImportError extends Error {}
 
@@ -55,19 +56,6 @@ async function restoreUploads(sourceDir: string, uploadsDir: string): Promise<vo
       await copyFile(src, dest);
     }
   }
-}
-
-async function countAllRows(
-  db: PostgresJsDatabase<typeof schema>
-): Promise<Record<string, number>> {
-  const counts: Record<string, number> = {};
-  for (const name of insertOrder()) {
-    const [row] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(tableByName(name) as any);
-    counts[name] = row?.count ?? 0;
-  }
-  return counts;
 }
 
 export async function importData(
