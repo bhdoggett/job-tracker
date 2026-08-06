@@ -1,8 +1,15 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { mkdtemp, mkdir, writeFile, readFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { writeArchive, readArchive } from "./archive";
+
+const EXTRACT_DIR_PREFIX = "job-tracker-import-";
+
+async function extractDirCount(): Promise<number> {
+  const entries = await readdir(tmpdir());
+  return entries.filter((name) => name.startsWith(EXTRACT_DIR_PREFIX)).length;
+}
 
 describe("writeArchive / readArchive", () => {
   const cleanupDirs: string[] = [];
@@ -97,5 +104,23 @@ describe("writeArchive / readArchive", () => {
     } else {
       expect(result.data).toEqual({ projects: [{ id: 2 }] });
     }
+  });
+
+  it("does not leak its extraction temp directory when the archive cannot be extracted", async () => {
+    const workDir = await mkdtemp(join(tmpdir(), "job-tracker-archive-test-"));
+    cleanupDirs.push(workDir);
+    const notAnArchive = join(workDir, "corrupt.tar.gz");
+    await writeFile(notAnArchive, "this is definitely not a gzip archive");
+
+    // Not an assertion on the absolute count in $TMPDIR — other tests/processes
+    // may have their own job-tracker-import-* dirs (including pre-existing,
+    // pre-fix leftovers). This only asserts readArchive doesn't add a new one
+    // of its own when it fails.
+    const before = await extractDirCount();
+
+    await expect(readArchive(notAnArchive)).rejects.toThrow();
+
+    const after = await extractDirCount();
+    expect(after).toBe(before);
   });
 });
