@@ -12,7 +12,7 @@ import {
   buildSetvalSql,
   assertRowCountsMatch,
   reviveTimestamps,
-  RowCountMismatchError,
+  attachSafetyExportPath,
 } from "./import-helpers";
 import { exportData } from "./export";
 import { countAllRows } from "./counts";
@@ -89,24 +89,32 @@ export async function importData(
       allowEmpty: true,
     });
 
-    try {
-      await db.transaction(async (tx) => {
-        for (const name of deleteOrder()) {
-          await tx.delete(tableByName(name) as any);
+    // Pre-commit failures (e.g. a bad row rejected by a DB constraint) roll
+    // the transaction back, so the database is untouched — no safety export
+    // needed on this path.
+    await db.transaction(async (tx) => {
+      for (const name of deleteOrder()) {
+        await tx.delete(tableByName(name) as any);
+      }
+      for (const name of insertOrder()) {
+        const rows = reviveTimestamps(tableByName(name), typedData[name] ?? []);
+        if (rows.length > 0) {
+          await tx.insert(tableByName(name) as any).values(rows as any);
         }
-        for (const name of insertOrder()) {
-          const rows = reviveTimestamps(tableByName(name), typedData[name] ?? []);
-          if (rows.length > 0) {
-            await tx.insert(tableByName(name) as any).values(rows as any);
-          }
+      }
+      for (const name of insertOrder()) {
+        if (hasSerialPrimaryKey(name)) {
+          await tx.execute(sql.raw(buildSetvalSql(name)));
         }
-        for (const name of insertOrder()) {
-          if (hasSerialPrimaryKey(name)) {
-            await tx.execute(sql.raw(buildSetvalSql(name)));
-          }
-        }
-      });
+      }
+    });
 
+    // Everything from here on runs after the transaction has committed — the
+    // database has already been replaced. ANY error escaping this block
+    // (a full disk during restoreUploads, a countAllRows failure, or a row
+    // count mismatch) must carry safetyExportPath, since it is now the
+    // user's only way back.
+    try {
       await restoreUploads(join(extractDir, "uploads"), options.uploadsDir);
 
       const liveRowCounts = await countAllRows(db);
@@ -114,12 +122,7 @@ export async function importData(
 
       return { rowCounts: liveRowCounts, safetyExportPath, warnings: validated.warnings ?? [] };
     } catch (err) {
-      // The DB has already been replaced by this point — the safety export
-      // is exactly what's needed to recover, so its location must not be
-      // lost on the error path.
-      if (err instanceof RowCountMismatchError) {
-        err.safetyExportPath = safetyExportPath;
-      }
+      attachSafetyExportPath(err, safetyExportPath);
       throw err;
     }
   } finally {

@@ -144,13 +144,20 @@ export function BackupSection() {
           type="file"
           accept=".gz,.tgz,application/gzip"
           onChange={handleFileChange}
+          disabled={modalOpen || restoring}
         />
         {restoreError && (
           <div className={styles.result}>
             <p className={styles.error}>{restoreError}</p>
-            {restoreErrorSafetyPath && (
+            {restoreErrorSafetyPath ? (
               <p className={styles.detail}>
                 Your previous data was saved to <code>{restoreErrorSafetyPath}</code>
+              </p>
+            ) : (
+              <p className={styles.detail}>
+                A safety snapshot of your previous data, if one was made, would be saved under{" "}
+                <code>~/job-tracker-backups/pre-import/</code> — check there before assuming
+                anything was lost.
               </p>
             )}
           </div>

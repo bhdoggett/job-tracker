@@ -9,6 +9,20 @@ export class RowCountMismatchError extends Error {
   safetyExportPath?: string;
 }
 
+/**
+ * Attach `safetyExportPath` to any error object so it survives to the route
+ * handler. Used for every failure that can occur after the transaction has
+ * committed (RowCountMismatchError, but also whatever `restoreUploads` or
+ * `countAllRows` throw) — at that point the DB has already been replaced, so
+ * the safety export's location must never be lost on the error path. Errors
+ * that aren't plain objects (e.g. a thrown string) are left alone.
+ */
+export function attachSafetyExportPath(err: unknown, safetyExportPath: string): void {
+  if (typeof err === "object" && err !== null) {
+    (err as { safetyExportPath?: string }).safetyExportPath = safetyExportPath;
+  }
+}
+
 export function buildSetvalSql(tableName: string): string {
   return (
     `SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), ` +
