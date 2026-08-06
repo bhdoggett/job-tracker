@@ -55,5 +55,18 @@ export function validateManifest(manifest: unknown, expectedKeyFingerprint: stri
     );
   }
 
+  if (
+    typeof m.rowCounts !== "object" ||
+    m.rowCounts === null ||
+    Array.isArray(m.rowCounts) ||
+    !Object.values(m.rowCounts as Record<string, unknown>).every(
+      (v) => typeof v === "number" && Number.isFinite(v)
+    )
+  ) {
+    throw new ManifestValidationError(
+      "manifest.json has missing or malformed rowCounts — refusing to trust this archive's row-count guarantee"
+    );
+  }
+
   return m as unknown as Manifest;
 }

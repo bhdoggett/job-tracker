@@ -58,4 +58,30 @@ describe("validateManifest", () => {
   it("rejects a non-object manifest", () => {
     expect(() => validateManifest(null, "fp-match")).toThrow(ManifestValidationError);
   });
+
+  it("rejects a manifest with rowCounts missing entirely", () => {
+    const { rowCounts, ...rest } = valid;
+    void rowCounts;
+    expect(() => validateManifest(rest, "fp-match")).toThrow(ManifestValidationError);
+  });
+
+  it("rejects a manifest whose rowCounts is not an object", () => {
+    const malformed = { ...valid, rowCounts: "not-an-object" };
+    expect(() => validateManifest(malformed, "fp-match")).toThrow(ManifestValidationError);
+  });
+
+  it("rejects a manifest whose rowCounts is an array", () => {
+    const malformed = { ...valid, rowCounts: [1, 2, 3] };
+    expect(() => validateManifest(malformed, "fp-match")).toThrow(ManifestValidationError);
+  });
+
+  it("rejects a manifest whose rowCounts has non-numeric values", () => {
+    const malformed = { ...valid, rowCounts: { projects: "two" } };
+    expect(() => validateManifest(malformed, "fp-match")).toThrow(ManifestValidationError);
+  });
+
+  it("rejects a manifest whose rowCounts is null", () => {
+    const malformed = { ...valid, rowCounts: null };
+    expect(() => validateManifest(malformed, "fp-match")).toThrow(ManifestValidationError);
+  });
 });
