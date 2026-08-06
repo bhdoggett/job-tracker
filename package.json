@@ -20,6 +20,7 @@
     "db:studio": "npm run db:studio --workspace=backend",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "export": "npm run export --workspace=backend",
-    "import": "npm run import --workspace=backend"
+    "import": "npm run import --workspace=backend",
+    "test": "npm run test --workspaces --if-present"
   }
 }
