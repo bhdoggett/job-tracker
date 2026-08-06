@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor, act, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BackupSection } from "./BackupSection";
 import { backupApi, BackupApiError, type InspectResponse, type RestoreResponse } from "../api/backup";
@@ -76,8 +76,13 @@ describe("BackupSection", () => {
     expect(await screen.findByText(/2026-08-05-MacBook-Air\.tar\.gz/)).toBeInTheDocument();
     expect(screen.getByText("MacBook-Air")).toBeInTheDocument();
     const projectsRow = screen.getByTestId("preview-row-projects");
-    expect(projectsRow).toHaveTextContent("2");
-    expect(projectsRow).toHaveTextContent("1");
+    // Assert by cell position, not row-wide text: "Projects 2 1" and a
+    // swapped "Projects 1 2" both satisfy toHaveTextContent("2") /
+    // toHaveTextContent("1") on the whole row, so that style of assertion
+    // can't tell a correct archive/current layout from a swapped one.
+    const cells = within(projectsRow).getAllByRole("cell");
+    expect(cells[0]).toHaveTextContent("2"); // Archive
+    expect(cells[1]).toHaveTextContent("1"); // Current
   });
 
   it("does NOT restore when the preview is cancelled", async () => {
@@ -169,6 +174,12 @@ describe("BackupSection", () => {
     const freshFile = new File(["b"], "fresh-archive.tar.gz", { type: "application/gzip" });
 
     await userEvent.upload(input, staleFile);
+    // The file input is disabled while the modal is open (see the
+    // disabled-input test), so a second file can only be picked after
+    // cancelling — Cancel isn't gated on the inspect still being in flight,
+    // only on a restore being in flight, so this closes the modal and
+    // re-enables the input while the first inspect() call is still pending.
+    await userEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
     await userEvent.upload(input, freshFile);
 
     // The fresh (second) request wins the race and resolves first; the stale
@@ -196,6 +207,31 @@ describe("BackupSection", () => {
     expect(screen.getByText("MacBook-Air")).toBeInTheDocument();
     expect(screen.queryByText("StaleHost")).not.toBeInTheDocument();
     expect(screen.getByText(/fresh-archive\.tar\.gz/)).toBeInTheDocument();
+  });
+
+  it("disables the file input while the modal is open and while a restore is in flight", async () => {
+    let resolveRestore!: (v: RestoreResponse) => void;
+    restoreMock.mockImplementation(
+      () =>
+        new Promise<RestoreResponse>((resolve) => {
+          resolveRestore = resolve;
+        })
+    );
+
+    render(<BackupSection />);
+    const input = screen.getByLabelText(/choose a backup file/i);
+    expect(input).not.toBeDisabled();
+
+    await selectFile();
+    expect(input).toBeDisabled();
+
+    await userEvent.click(await screen.findByRole("button", { name: /replace my data/i }));
+    expect(await screen.findByRole("button", { name: /restoring/i })).toBeInTheDocument();
+    expect(input).toBeDisabled();
+
+    resolveRestore({ rowCounts: { projects: 2 }, safetyExportPath: "/tmp/x.tar.gz", warnings: [] });
+
+    await waitFor(() => expect(input).not.toBeDisabled());
   });
 
   it("ignores Escape while a restore is in flight", async () => {

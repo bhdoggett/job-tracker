@@ -73,6 +73,11 @@ export const backupApi = {
     document.body.appendChild(link);
     link.click();
     link.remove();
-    URL.revokeObjectURL(url);
+    // Revoking in the same tick as click() can abort the download in some
+    // browsers — the click has only just been dispatched, not necessarily
+    // acted on yet. A backup silently truncated mid-download is exactly the
+    // failure mode this project exists to make unreachable, so defer the
+    // revoke to the next tick instead.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   },
 };

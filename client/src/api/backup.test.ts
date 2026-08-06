@@ -100,12 +100,28 @@ describe("backupApi", () => {
       const createObjectURL = vi.fn(() => "blob:fake-url");
       const revokeObjectURL = vi.fn();
       vi.stubGlobal("URL", { ...URL, createObjectURL, revokeObjectURL });
-      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+      let downloadAtClick: string | undefined;
+      const clickSpy = vi
+        .spyOn(HTMLAnchorElement.prototype, "click")
+        .mockImplementation(function (this: HTMLAnchorElement) {
+          // Capture at click-time so this also proves `download` was set
+          // before the click fired, not just at some point afterward.
+          downloadAtClick = this.download;
+        });
 
       await backupApi.download();
 
       expect(createObjectURL).toHaveBeenCalledOnce();
       expect(clickSpy).toHaveBeenCalledOnce();
+      // A regex bug in filenameFromDisposition would go undetected without
+      // this — createObjectURL/click/revokeObjectURL firing proves nothing
+      // about whether the parsed filename actually made it onto the link.
+      expect(downloadAtClick).toBe("job-tracker-2026-08-05-TestMac.tar.gz");
+      // revokeObjectURL is deferred to the next tick (not called synchronously
+      // alongside click()), so a browser that hasn't finished acting on the
+      // click yet doesn't have the blob URL yanked out from under it.
+      expect(revokeObjectURL).not.toHaveBeenCalled();
+      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(revokeObjectURL).toHaveBeenCalledWith("blob:fake-url");
     });
   });
