@@ -1,6 +1,13 @@
 import { PgColumn, type PgTable } from "drizzle-orm/pg-core";
 
-export class RowCountMismatchError extends Error {}
+export class RowCountMismatchError extends Error {
+  /**
+   * Path to the pre-import safety export written just before the DB was
+   * replaced. Set by import.ts once known — this is the one moment the
+   * safety archive matters most, so its location must not be lost.
+   */
+  safetyExportPath?: string;
+}
 
 export function buildSetvalSql(tableName: string): string {
   return (

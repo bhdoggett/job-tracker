@@ -5,10 +5,41 @@ import { writeFile } from "node:fs/promises";
 import { create } from "tar";
 import { setupTestDb } from "./test-db";
 import { exportData } from "./export";
-import { readArchive } from "./archive";
-import { importData } from "./import";
+import { readArchive, writeArchive } from "./archive";
+import { importData, EmptyImportError } from "./import";
 import { ManifestValidationError } from "./manifest";
-import { projects, tasks, timeEntries } from "../../db/schema/index";
+import { RowCountMismatchError } from "./import-helpers";
+import { access } from "node:fs/promises";
+import { projects, tasks, timeEntries, docs } from "../../db/schema/index";
+
+/**
+ * Builds a well-formed but all-zero archive (valid fingerprint, valid
+ * rowCounts shape, every count 0) directly from a real export's manifest, so
+ * the zero-row tests don't need a second physical database — setupTestDb()
+ * always points at the same shared job_tracker_test database, so calling it
+ * twice within one test would corrupt ctx's own state instead of providing
+ * an isolated empty DB.
+ */
+async function buildZeroRowArchive(
+  templateArchivePath: string,
+  outPath: string,
+  uploadsDir: string
+): Promise<void> {
+  const { manifest } = await readArchive(templateArchivePath);
+  const tableNames = Object.keys((manifest as { rowCounts: Record<string, number> }).rowCounts);
+  const zeroManifest = {
+    ...(manifest as object),
+    rowCounts: Object.fromEntries(tableNames.map((name) => [name, 0])),
+  };
+  const emptyData = Object.fromEntries(tableNames.map((name) => [name, []]));
+  await writeArchive({
+    outPath,
+    manifest: zeroManifest,
+    data: emptyData,
+    uploadsDir,
+    uploadFiles: [],
+  });
+}
 
 describe("importData", () => {
   let ctx: Awaited<ReturnType<typeof setupTestDb>>;
@@ -103,5 +134,133 @@ describe("importData", () => {
 
     const rows = await ctx.db.select().from(projects);
     expect(rows).toHaveLength(1);
+  });
+
+  it("refuses to import a zero-row archive and leaves the database untouched", async () => {
+    const [project] = await ctx.db
+      .insert(projects)
+      .values({ name: "Must Survive Co", clientName: "Client", rate: "1.00" })
+      .returning();
+
+    const templateArchivePath = join(ctx.workDir, "template-for-zero.tar.gz");
+    await exportData(ctx.db, { outPath: templateArchivePath, uploadsDir: ctx.uploadsDir });
+
+    const emptyArchivePath = join(ctx.workDir, "empty.tar.gz");
+    await buildZeroRowArchive(templateArchivePath, emptyArchivePath, ctx.uploadsDir);
+
+    await expect(
+      importData(ctx.db, {
+        archivePath: emptyArchivePath,
+        uploadsDir: ctx.uploadsDir,
+        safetyExportDir: ctx.workDir,
+      })
+    ).rejects.toThrow(EmptyImportError);
+
+    const rows = await ctx.db.select().from(projects);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(project.id);
+    expect(rows[0].name).toBe("Must Survive Co");
+  });
+
+  it("permits importing a zero-row archive when allowEmpty is explicitly set", async () => {
+    await ctx.db
+      .insert(projects)
+      .values({ name: "Will Be Wiped Co", clientName: "Client", rate: "1.00" })
+      .returning();
+
+    const templateArchivePath = join(ctx.workDir, "template-for-zero-allowed.tar.gz");
+    await exportData(ctx.db, { outPath: templateArchivePath, uploadsDir: ctx.uploadsDir });
+
+    const emptyArchivePath = join(ctx.workDir, "empty-allowed.tar.gz");
+    await buildZeroRowArchive(templateArchivePath, emptyArchivePath, ctx.uploadsDir);
+
+    const result = await importData(ctx.db, {
+      archivePath: emptyArchivePath,
+      uploadsDir: ctx.uploadsDir,
+      safetyExportDir: ctx.workDir,
+      allowEmpty: true,
+    });
+
+    const total = Object.values(result.rowCounts).reduce((a, b) => a + b, 0);
+    expect(total).toBe(0);
+
+    const rows = await ctx.db.select().from(projects);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("surfaces manifest warnings on the ImportResult", async () => {
+    const [project] = await ctx.db
+      .insert(projects)
+      .values({ name: "Warn Co", clientName: "Client", rate: "1.00" })
+      .returning();
+
+    // A doc row whose file is missing from uploadsDir produces a warning
+    // (see export.test.ts). Import must surface that warning back out, not
+    // swallow it.
+    await ctx.db.insert(docs).values({
+      projectId: project.id,
+      title: "Missing Doc",
+      fileName: "gone.pdf",
+      filePath: "gone.pdf",
+      mimeType: "application/pdf",
+      size: 0,
+    });
+
+    const archivePath = join(ctx.workDir, "warn.tar.gz");
+    await exportData(ctx.db, { outPath: archivePath, uploadsDir: ctx.uploadsDir });
+
+    await ctx.truncateAll();
+
+    const result = await importData(ctx.db, {
+      archivePath,
+      uploadsDir: ctx.uploadsDir,
+      safetyExportDir: ctx.workDir,
+    });
+
+    expect(result.warnings).toEqual(["Missing upload file: gone.pdf"]);
+  });
+
+  it("attaches the safety export path to RowCountMismatchError so it can be surfaced after a post-commit failure", async () => {
+    await ctx.db
+      .insert(projects)
+      .values({ name: "Mismatch Setup Co", clientName: "Client", rate: "1.00" })
+      .returning();
+
+    const goodArchivePath = join(ctx.workDir, "good-for-mismatch.tar.gz");
+    await exportData(ctx.db, { outPath: goodArchivePath, uploadsDir: ctx.uploadsDir });
+
+    // Lie about the row count for a table so the post-import verification
+    // (which runs after the DB has already been replaced) fails.
+    const { manifest, extractDir } = await readArchive(goodArchivePath);
+    const lyingManifest = {
+      ...(manifest as { rowCounts: Record<string, number> }),
+      rowCounts: {
+        ...(manifest as { rowCounts: Record<string, number> }).rowCounts,
+        projects: ((manifest as { rowCounts: Record<string, number> }).rowCounts.projects ?? 0) + 1,
+      },
+    };
+    await writeFile(join(extractDir, "manifest.json"), JSON.stringify(lyingManifest));
+    const lyingArchivePath = join(ctx.workDir, "lying.tar.gz");
+    await create(
+      { gzip: true, file: lyingArchivePath, cwd: extractDir },
+      ["manifest.json", "data.json", "uploads"]
+    );
+
+    let caught: unknown;
+    try {
+      await importData(ctx.db, {
+        archivePath: lyingArchivePath,
+        uploadsDir: ctx.uploadsDir,
+        safetyExportDir: ctx.workDir,
+      });
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).toBeInstanceOf(RowCountMismatchError);
+    const mismatchErr = caught as RowCountMismatchError;
+    expect(mismatchErr.safetyExportPath).toBeTruthy();
+    // The safety export must actually exist on disk at the reported path.
+    await expect(access(mismatchErr.safetyExportPath!)).resolves.toBeUndefined();
   });
 });
