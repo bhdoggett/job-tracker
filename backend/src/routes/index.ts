@@ -6,6 +6,7 @@ import { invoicesRouter } from "./invoices";
 import { profileRouter } from "./profile";
 import { expensesRouter } from "./expenses";
 import { docsRouter } from "./docs";
+import { backupRouter } from "./backup";
 
 export function registerRoutes(app: Hono) {
   app.route("/api/projects", projectsRouter);
@@ -15,4 +16,5 @@ export function registerRoutes(app: Hono) {
   app.route("/api/profile", profileRouter);
   app.route("/api/expenses", expensesRouter);
   app.route("/api/docs", docsRouter);
+  app.route("/api/backup", backupRouter);
 }
