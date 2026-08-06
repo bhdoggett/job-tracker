@@ -9,7 +9,7 @@ import { env } from "../lib/env";
 import { UPLOADS_DIR, SAFETY_EXPORT_DIR } from "../lib/paths";
 import { exportData, EmptyExportError } from "../lib/backup/export";
 import { importData, EmptyImportError } from "../lib/backup/import";
-import { inspectArchive, ArchiveUnreadableError } from "../lib/backup/inspect";
+import { inspectArchive, ArchiveUnreadableError, ArchiveDataMismatchError } from "../lib/backup/inspect";
 import { ManifestValidationError } from "../lib/backup/manifest";
 import { RowCountMismatchError } from "../lib/backup/import-helpers";
 
@@ -56,6 +56,7 @@ backupRouter.post("/inspect", async (c) => {
   } catch (err) {
     if (err instanceof ArchiveUnreadableError) return c.json({ error: err.message }, 400);
     if (err instanceof ManifestValidationError) return c.json({ error: err.message }, 400);
+    if (err instanceof ArchiveDataMismatchError) return c.json({ error: err.message }, 400);
     throw err;
   } finally {
     await rm(stagingDir, { recursive: true, force: true });

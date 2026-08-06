@@ -6,7 +6,7 @@ import { create } from "tar";
 import { setupTestDb } from "./test-db";
 import { exportData } from "./export";
 import { readArchive } from "./archive";
-import { inspectArchive, ArchiveUnreadableError } from "./inspect";
+import { inspectArchive, ArchiveUnreadableError, ArchiveDataMismatchError } from "./inspect";
 import { ManifestValidationError } from "./manifest";
 import { projects, tasks } from "../../db/schema/index";
 
@@ -86,6 +86,35 @@ describe("inspectArchive", () => {
 
     await expect(inspectArchive(ctx.db, { archivePath: corruptPath })).rejects.toThrow(
       ManifestValidationError
+    );
+  });
+
+  it("rejects an archive whose manifest row counts don't match its actual data", async () => {
+    const archivePath = await seedAndExport("truncated.tar.gz");
+    const { manifest, extractDir } = await readArchive(archivePath);
+
+    // Simulate a truncated archive: the manifest still claims 1 project, but
+    // it disagrees with what's actually in data.json (an intact manifest
+    // next to data that doesn't back it up).
+    await writeFile(
+      join(extractDir, "manifest.json"),
+      JSON.stringify({
+        ...(manifest as { rowCounts: Record<string, number> }),
+        rowCounts: {
+          ...(manifest as { rowCounts: Record<string, number> }).rowCounts,
+          projects: ((manifest as { rowCounts: Record<string, number> }).rowCounts.projects ?? 0) + 1,
+        },
+      })
+    );
+    const corruptPath = join(ctx.workDir, "truncated-corrupt.tar.gz");
+    await create({ gzip: true, file: corruptPath, cwd: extractDir }, [
+      "manifest.json",
+      "data.json",
+      "uploads",
+    ]);
+
+    await expect(inspectArchive(ctx.db, { archivePath: corruptPath })).rejects.toThrow(
+      ArchiveDataMismatchError
     );
   });
 

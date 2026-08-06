@@ -10,6 +10,35 @@ import { countAllRows } from "./counts";
 /** The file could not be opened as a job-tracker archive at all. */
 export class ArchiveUnreadableError extends Error {}
 
+/**
+ * The manifest's claimed row counts don't match the row counts actually
+ * present in the archive's data.json — e.g. a truncated archive with an
+ * intact (stale) manifest. The preview must never vouch for a count it
+ * hasn't verified, since the user relies on it to decide whether it's safe
+ * to wipe the live database. Such an archive is corrupt either way, and
+ * `importData` would fail its own post-commit check after the wipe has
+ * already happened — refusing here catches it before anything is touched.
+ */
+export class ArchiveDataMismatchError extends Error {}
+
+function verifyRowCounts(rowCounts: Record<string, number>, data: unknown): void {
+  const typedData = (data ?? {}) as Record<string, unknown>;
+  const mismatches: string[] = [];
+  for (const [table, claimed] of Object.entries(rowCounts)) {
+    const rows = typedData[table];
+    const actual = Array.isArray(rows) ? rows.length : 0;
+    if (actual !== claimed) {
+      mismatches.push(`"${table}" (manifest claims ${claimed}, archive data has ${actual})`);
+    }
+  }
+  if (mismatches.length > 0) {
+    throw new ArchiveDataMismatchError(
+      `Archive manifest row counts do not match its data — refusing to trust this archive: ` +
+        mismatches.join(", ")
+    );
+  }
+}
+
 export interface InspectResult {
   manifest: {
     createdAt: string;
@@ -40,6 +69,7 @@ export async function inspectArchive(
 
   try {
     const manifest = validateManifest(archive.manifest, fingerprintKey(env.ENCRYPTION_KEY));
+    verifyRowCounts(manifest.rowCounts, archive.data);
     const current = await countAllRows(db);
     return {
       manifest: {
