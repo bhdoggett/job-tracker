@@ -23,7 +23,6 @@ The routes already exist and work. What's missing is a way to use them without a
 - Backup scheduling or controls for the nightly launchd job.
 - Backup history, staleness warnings, or last-run status (review finding I9 stays open).
 - Any change to the export/import core in `backend/src/lib/backup/`.
-- Client-side test tooling. The client has none today; this feature does not add a harness.
 
 ## The central decision: preview before replace
 
@@ -103,7 +102,9 @@ No behavior change. `import.ts` keeps calling it exactly as it does now.
 client/src/api/backup.ts                          inspect() / restore() / downloadUrl()
 client/src/components/BackupSection.tsx           the UI
 client/src/components/BackupSection.module.css    styles
+client/src/components/BackupSection.test.tsx      component tests (see Testing)
 client/src/pages/ProfilePage.tsx                  renders <BackupSection />
+client/vitest.config.ts                           jsdom environment for client tests
 ```
 
 `backup.ts` follows the existing `docs.ts` pattern (FormData upload, thrown `Error` carrying the
@@ -158,12 +159,36 @@ does real database work.
 - inspect on a malformed archive → 400
 - `countAllRows` continues to behave identically after being moved (covered by the existing import tests)
 
-**Client** — `client/package.json` has no vitest, no testing-library, and no `test` script. This
-feature does not add a client test harness as a side effect. The UI is verified manually:
-download an archive, inspect it, confirm the preview matches `manifest.json`, and confirm the
-cancel path leaves the database untouched.
+**Client** — the client currently has no test tooling. This feature adds it, because the most
+important behavior in this UI is a *negative* one: cancelling must not restore. That cannot be
+verified by inspection, and it is not acceptable to leave a data-destroying flow untested.
 
-This is stated explicitly rather than left implied: the UI ships without automated tests.
+Tooling added to the `client` workspace:
+
+```
+vitest  @testing-library/react  @testing-library/user-event  @testing-library/jest-dom  jsdom
+```
+
+with `client/vitest.config.ts` (`environment: "jsdom"`), a `test` script in
+`client/package.json`, and a root `test` script that runs both workspaces so one command covers
+the repo.
+
+`BackupSection` tests, mocking only the network boundary (`client/src/api/backup.ts`) — the
+component's real logic and real rendering are exercised:
+
+| Test | Why it matters |
+|---|---|
+| Cancelling the preview never calls `restore` | The negative case; a regression here destroys data |
+| Confirming calls `restore` exactly once with the selected file | The positive path |
+| Preview renders archive counts beside current counts | The whole point of preview-before-replace |
+| An inspect error shows the message and leaves confirm disabled | A bad archive must not become restorable |
+| A zero-row / key-mismatch rejection surfaces the server's message | The user must learn *which* key is needed |
+| Post-import warnings are displayed | Otherwise missing-upload warnings vanish silently |
+| Export button triggers the download URL | Cheap, and the export path is otherwise untested client-side |
+
+Mocking the API module is deliberate and limited: these are component tests, and the real
+network behavior is already covered by the backend integration tests above. Nothing mocks the
+component's own logic.
 
 ## Open items
 
