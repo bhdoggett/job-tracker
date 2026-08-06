@@ -56,4 +56,46 @@ describe("writeArchive / readArchive", () => {
     expect(result.manifest).toEqual({ formatVersion: 1 });
     expect(result.data).toEqual({});
   });
+
+  it("does not corrupt either archive when two writes to the same outPath run concurrently", async () => {
+    const workDir = await mkdtemp(join(tmpdir(), "job-tracker-archive-test-"));
+    cleanupDirs.push(workDir);
+    const uploadsDir = join(workDir, "uploads-src");
+    await mkdir(uploadsDir, { recursive: true });
+
+    const outPath = join(workDir, "concurrent.tar.gz");
+
+    // Simulates the 23:00 launchd run overlapping a manual `npm run export`:
+    // both write to the same outPath. Before the fix, both used the same
+    // literal `${outPath}.tmp`, so their writes could interleave into one
+    // corrupt temp file that both renames then "succeed" on.
+    await Promise.all([
+      writeArchive({
+        outPath,
+        manifest: { formatVersion: 1, run: "a" },
+        data: { projects: [{ id: 1 }] },
+        uploadsDir,
+        uploadFiles: [],
+      }),
+      writeArchive({
+        outPath,
+        manifest: { formatVersion: 1, run: "b" },
+        data: { projects: [{ id: 2 }] },
+        uploadsDir,
+        uploadFiles: [],
+      }),
+    ]);
+
+    // Whichever write won the final rename, the result must be one of the
+    // two complete, valid archives — never a corrupt merge of both.
+    const result = await readArchive(outPath);
+    cleanupDirs.push(result.extractDir);
+    const run = (result.manifest as { run: string }).run;
+    expect(["a", "b"]).toContain(run);
+    if (run === "a") {
+      expect(result.data).toEqual({ projects: [{ id: 1 }] });
+    } else {
+      expect(result.data).toEqual({ projects: [{ id: 2 }] });
+    }
+  });
 });

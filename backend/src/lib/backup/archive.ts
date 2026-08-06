@@ -2,6 +2,7 @@ import { create, extract } from "tar";
 import { mkdtemp, mkdir, writeFile, readFile, copyFile, rename, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { randomBytes } from "node:crypto";
 
 export async function writeArchive(params: {
   outPath: string;
@@ -22,7 +23,10 @@ export async function writeArchive(params: {
     }
 
     await mkdir(dirname(params.outPath), { recursive: true });
-    const tmpOut = `${params.outPath}.tmp`;
+    // Include the pid and a random suffix so two concurrent exports to the
+    // same outPath (e.g. the nightly launchd run overlapping a manual `npm
+    // run export`) never interleave writes into one shared temp file.
+    const tmpOut = `${params.outPath}.${process.pid}.${randomBytes(6).toString("hex")}.tmp`;
     await create({ gzip: true, file: tmpOut, cwd: stagingDir }, ["manifest.json", "data.json", "uploads"]);
     await rename(tmpOut, params.outPath);
   } finally {
