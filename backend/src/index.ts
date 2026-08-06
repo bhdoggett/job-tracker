@@ -1,6 +1,10 @@
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
 import { env } from "./lib/env";
+import { db } from "./db/client";
+import { runMigrations } from "./lib/migrate";
+
+await runMigrations(db);
 
 const app = createApp();
 
