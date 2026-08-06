@@ -1,16 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { BackupSection } from "./BackupSection";
-import { backupApi } from "../api/backup";
+import { backupApi, BackupApiError, type InspectResponse, type RestoreResponse } from "../api/backup";
 
-vi.mock("../api/backup", () => ({
-  backupApi: {
-    inspect: vi.fn(),
-    restore: vi.fn(),
-    download: vi.fn(),
-  },
-}));
+vi.mock("../api/backup", async () => {
+  const actual = await vi.importActual<typeof import("../api/backup")>("../api/backup");
+  return {
+    ...actual,
+    backupApi: {
+      inspect: vi.fn(),
+      restore: vi.fn(),
+      download: vi.fn(),
+    },
+  };
+});
 
 const inspectMock = vi.mocked(backupApi.inspect);
 const restoreMock = vi.mocked(backupApi.restore);
@@ -128,12 +132,98 @@ describe("BackupSection", () => {
   });
 
   it("shows the safety snapshot path when a restore fails after committing", async () => {
-    restoreMock.mockRejectedValue(new Error("Row count mismatch for \"projects\": expected 2, got 1"));
+    restoreMock.mockRejectedValue(
+      new BackupApiError(
+        'Row count mismatch for "projects": expected 2, got 1',
+        "/Users/me/job-tracker-backups/pre-import/pre-import-y.tar.gz"
+      )
+    );
     render(<BackupSection />);
     await selectFile();
 
     await userEvent.click(await screen.findByRole("button", { name: /replace my data/i }));
 
     expect(await screen.findByText(/row count mismatch/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/pre-import\/pre-import-y\.tar\.gz/)
+    ).toBeInTheDocument();
+  });
+
+  it("ignores a superseded inspect response when a second file is selected first", async () => {
+    let resolveFirst!: (v: InspectResponse) => void;
+    let resolveSecond!: (v: InspectResponse) => void;
+    const firstPromise = new Promise<InspectResponse>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const secondPromise = new Promise<InspectResponse>((resolve) => {
+      resolveSecond = resolve;
+    });
+
+    inspectMock.mockImplementationOnce(() => firstPromise);
+    inspectMock.mockImplementationOnce(() => secondPromise);
+
+    render(<BackupSection />);
+    const input = screen.getByLabelText(/choose a backup file/i);
+
+    const staleFile = new File(["a"], "stale-archive.tar.gz", { type: "application/gzip" });
+    const freshFile = new File(["b"], "fresh-archive.tar.gz", { type: "application/gzip" });
+
+    await userEvent.upload(input, staleFile);
+    await userEvent.upload(input, freshFile);
+
+    // The fresh (second) request wins the race and resolves first; the stale
+    // (first) request arrives late, as it would over a slow network. Without
+    // a staleness guard, the late arrival would clobber the fresh preview.
+    resolveSecond(PREVIEW);
+    await screen.findByText("MacBook-Air");
+
+    // Give the late (stale) resolution's continuation a chance to run before
+    // asserting it had no effect, wrapped in act() since (when the guard is
+    // working) it produces no state update at all.
+    await act(async () => {
+      resolveFirst({
+        manifest: {
+          createdAt: "2020-01-01T00:00:00.000Z",
+          hostname: "StaleHost",
+          rowCounts: { projects: 999 },
+          warnings: [],
+        },
+        current: { projects: 1 },
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(screen.getByText("MacBook-Air")).toBeInTheDocument();
+    expect(screen.queryByText("StaleHost")).not.toBeInTheDocument();
+    expect(screen.getByText(/fresh-archive\.tar\.gz/)).toBeInTheDocument();
+  });
+
+  it("ignores Escape while a restore is in flight", async () => {
+    let resolveRestore!: (v: RestoreResponse) => void;
+    restoreMock.mockImplementation(
+      () =>
+        new Promise<RestoreResponse>((resolve) => {
+          resolveRestore = resolve;
+        })
+    );
+
+    render(<BackupSection />);
+    await selectFile();
+    await userEvent.click(await screen.findByRole("button", { name: /replace my data/i }));
+
+    // Restore is now in flight (button shows the pending label).
+    expect(await screen.findByRole("button", { name: /restoring/i })).toBeInTheDocument();
+
+    await userEvent.keyboard("{Escape}");
+
+    // The modal must still be open — Escape must not act as an implicit cancel mid-restore.
+    expect(screen.getByText(/restore from backup/i)).toBeInTheDocument();
+    expect(restoreMock).toHaveBeenCalledOnce();
+
+    resolveRestore({ rowCounts: { projects: 2 }, safetyExportPath: "/tmp/x.tar.gz", warnings: [] });
+
+    await waitFor(() =>
+      expect(screen.queryByText(/restore from backup/i)).not.toBeInTheDocument()
+    );
   });
 });

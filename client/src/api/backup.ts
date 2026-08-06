@@ -16,13 +16,28 @@ export interface RestoreResponse {
   warnings: string[];
 }
 
+/**
+ * Thrown by `postFile` on a non-OK response. Carries `safetyExportPath` when
+ * the server reports one — e.g. a restore that failed after already
+ * replacing the database, where that path is the user's only way back.
+ */
+export class BackupApiError extends Error {
+  safetyExportPath?: string;
+
+  constructor(message: string, safetyExportPath?: string) {
+    super(message);
+    this.name = "BackupApiError";
+    this.safetyExportPath = safetyExportPath;
+  }
+}
+
 async function postFile<T>(path: string, file: File): Promise<T> {
   const body = new FormData();
   body.append("file", file);
   const res = await fetch(path, { method: "POST", body });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error ?? res.statusText);
+    throw new BackupApiError(err.error ?? res.statusText, err.safetyExportPath);
   }
   return res.json() as Promise<T>;
 }

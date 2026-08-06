@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "./ui/Button";
 import { Modal } from "./ui/Modal";
-import { backupApi, type InspectResponse, type RestoreResponse } from "../api/backup";
+import { backupApi, BackupApiError, type InspectResponse, type RestoreResponse } from "../api/backup";
 import styles from "./BackupSection.module.css";
 
 /** Display order and labels for the preview table. */
@@ -33,9 +33,14 @@ export function BackupSection() {
 
   const [restoring, setRestoring] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restoreErrorSafetyPath, setRestoreErrorSafetyPath] = useState<string | null>(null);
   const [restoreResult, setRestoreResult] = useState<RestoreResponse | null>(null);
 
   const modalOpen = selectedFile !== null;
+
+  // Guards against a stale inspect() response (from a previously selected
+  // file) overwriting the preview for whatever file is selected now.
+  const inspectRequestIdRef = useRef(0);
 
   const handleDownload = async () => {
     setExportError(null);
@@ -54,18 +59,26 @@ export function BackupSection() {
     e.target.value = ""; // allow re-selecting the same file after cancelling
     if (!file) return;
 
+    const requestId = ++inspectRequestIdRef.current;
+
     setSelectedFile(file);
     setPreview(null);
     setPreviewError(null);
     setRestoreError(null);
+    setRestoreErrorSafetyPath(null);
     setRestoreResult(null);
     setInspecting(true);
     try {
-      setPreview(await backupApi.inspect(file));
+      const result = await backupApi.inspect(file);
+      if (inspectRequestIdRef.current !== requestId) return; // superseded by a later selection
+      setPreview(result);
     } catch (err) {
+      if (inspectRequestIdRef.current !== requestId) return; // superseded by a later selection
       setPreviewError((err as Error).message);
     } finally {
-      setInspecting(false);
+      if (inspectRequestIdRef.current === requestId) {
+        setInspecting(false);
+      }
     }
   };
 
@@ -76,16 +89,26 @@ export function BackupSection() {
     setInspecting(false);
   };
 
+  // Passed to Modal as onClose (Escape / overlay click). Ignoring close
+  // requests while a restore is in flight prevents the modal from vanishing
+  // as though cancelled while the request is still committing.
+  const handleModalCloseRequest = () => {
+    if (restoring) return;
+    closeModal();
+  };
+
   const handleConfirmRestore = async () => {
     if (!selectedFile) return;
     setRestoring(true);
     setRestoreError(null);
+    setRestoreErrorSafetyPath(null);
     try {
       const result = await backupApi.restore(selectedFile);
       setRestoreResult(result);
       closeModal();
     } catch (err) {
       setRestoreError((err as Error).message);
+      setRestoreErrorSafetyPath(err instanceof BackupApiError ? (err.safetyExportPath ?? null) : null);
       closeModal();
     } finally {
       setRestoring(false);
@@ -122,7 +145,16 @@ export function BackupSection() {
           accept=".gz,.tgz,application/gzip"
           onChange={handleFileChange}
         />
-        {restoreError && <p className={styles.error}>{restoreError}</p>}
+        {restoreError && (
+          <div className={styles.result}>
+            <p className={styles.error}>{restoreError}</p>
+            {restoreErrorSafetyPath && (
+              <p className={styles.detail}>
+                Your previous data was saved to <code>{restoreErrorSafetyPath}</code>
+              </p>
+            )}
+          </div>
+        )}
         {restoreResult && (
           <div className={styles.result}>
             <p className={styles.success}>
@@ -141,7 +173,7 @@ export function BackupSection() {
       </div>
 
       {modalOpen && (
-        <Modal title="Restore from backup" onClose={closeModal}>
+        <Modal title="Restore from backup" onClose={handleModalCloseRequest}>
           <div className={styles.modalBody}>
             <p className={styles.fileName}>{selectedFile?.name}</p>
 
@@ -197,7 +229,12 @@ export function BackupSection() {
             )}
 
             <div className={styles.modalActions}>
-              <Button type="button" variant="secondary" onClick={closeModal} disabled={restoring}>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleModalCloseRequest}
+                disabled={restoring}
+              >
                 Cancel
               </Button>
               {preview && (
