@@ -4,6 +4,7 @@ import {
   buildSetvalSql,
   assertRowCountsMatch,
   reviveTimestamps,
+  attachSafetyExportPath,
   RowCountMismatchError,
 } from "./import-helpers";
 import { timeEntries, timeEntryTasks } from "../../db/schema/index";
@@ -33,6 +34,30 @@ describe("assertRowCountsMatch", () => {
     expect(() =>
       assertRowCountsMatch({ projects: 1, tasks: 1 }, { projects: 1 })
     ).toThrow(/tasks/);
+  });
+});
+
+describe("attachSafetyExportPath", () => {
+  it("attaches the path to a RowCountMismatchError", () => {
+    const err = new RowCountMismatchError("mismatch");
+    attachSafetyExportPath(err, "/tmp/pre-import.tar.gz");
+    expect(err.safetyExportPath).toBe("/tmp/pre-import.tar.gz");
+  });
+
+  it("attaches the path to any other error object, not just RowCountMismatchError", () => {
+    // A post-commit failure from restoreUploads or countAllRows (e.g. a full
+    // disk or permission error) throws a plain Error, not a
+    // RowCountMismatchError — it must carry the safety path just the same,
+    // since the DB has already been replaced by the time either can fail.
+    const err = new Error("ENOSPC: no space left on device");
+    attachSafetyExportPath(err, "/tmp/pre-import.tar.gz");
+    expect((err as Error & { safetyExportPath?: string }).safetyExportPath).toBe(
+      "/tmp/pre-import.tar.gz"
+    );
+  });
+
+  it("does nothing for a non-object thrown value", () => {
+    expect(() => attachSafetyExportPath("just a string", "/tmp/x.tar.gz")).not.toThrow();
   });
 });
 

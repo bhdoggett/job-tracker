@@ -38,8 +38,17 @@ export async function readArchive(
   archivePath: string
 ): Promise<{ manifest: unknown; data: unknown; extractDir: string }> {
   const extractDir = await mkdtemp(join(tmpdir(), "job-tracker-import-"));
-  await extract({ file: archivePath, cwd: extractDir });
-  const manifest = JSON.parse(await readFile(join(extractDir, "manifest.json"), "utf8"));
-  const data = JSON.parse(await readFile(join(extractDir, "data.json"), "utf8"));
-  return { manifest, data, extractDir };
+  // Ownership of extractDir only passes to the caller once every step below
+  // has succeeded. If extraction or parsing throws — e.g. the uploaded file
+  // isn't a valid tar.gz at all — this function must clean up the directory
+  // it created itself, since the caller was never handed the path to do so.
+  try {
+    await extract({ file: archivePath, cwd: extractDir });
+    const manifest = JSON.parse(await readFile(join(extractDir, "manifest.json"), "utf8"));
+    const data = JSON.parse(await readFile(join(extractDir, "data.json"), "utf8"));
+    return { manifest, data, extractDir };
+  } catch (err) {
+    await rm(extractDir, { recursive: true, force: true });
+    throw err;
+  }
 }

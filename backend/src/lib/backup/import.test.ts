@@ -263,4 +263,54 @@ describe("importData", () => {
     // The safety export must actually exist on disk at the reported path.
     await expect(access(mismatchErr.safetyExportPath!)).resolves.toBeUndefined();
   });
+
+  it("attaches the safety export path to a post-commit failure that is NOT a row-count mismatch (e.g. restoreUploads failing)", async () => {
+    const [project] = await ctx.db
+      .insert(projects)
+      .values({ name: "Uploads Fail Co", clientName: "Client", rate: "1.00" })
+      .returning();
+    await writeFile(join(ctx.uploadsDir, "doc1.pdf"), "fake pdf content");
+    await ctx.db.insert(docs).values({
+      projectId: project.id,
+      title: "Doc 1",
+      fileName: "doc1.pdf",
+      filePath: "doc1.pdf",
+      mimeType: "application/pdf",
+      size: 17,
+    });
+
+    const archivePath = join(ctx.workDir, "uploads-fail.tar.gz");
+    await exportData(ctx.db, { outPath: archivePath, uploadsDir: ctx.uploadsDir });
+
+    // A destination uploads directory that was never created: readdir() on
+    // the archive's uploads/ succeeds (there's a file to restore), but
+    // copyFile() into this nonexistent directory fails with ENOENT — a
+    // plain Node fs error, not a RowCountMismatchError. This runs after the
+    // transaction has already committed, so the DB has been replaced by the
+    // time this throws.
+    const missingUploadsDir = join(ctx.workDir, "never-created-uploads-dir");
+
+    let caught: unknown;
+    try {
+      await importData(ctx.db, {
+        archivePath,
+        uploadsDir: missingUploadsDir,
+        safetyExportDir: ctx.workDir,
+      });
+    } catch (err) {
+      caught = err;
+    }
+
+    expect(caught).not.toBeInstanceOf(RowCountMismatchError);
+    expect(caught).toBeInstanceOf(Error);
+    const err = caught as Error & { safetyExportPath?: string };
+    expect(err.safetyExportPath).toBeTruthy();
+    await expect(access(err.safetyExportPath!)).resolves.toBeUndefined();
+
+    // Confirm the DB really was replaced (not rolled back) — this is exactly
+    // why the safety path must not be lost on this error path.
+    const rows = await ctx.db.select().from(projects);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].name).toBe("Uploads Fail Co");
+  });
 });

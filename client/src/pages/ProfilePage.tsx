@@ -3,6 +3,7 @@ import type { Profile } from "@job-tracker/shared";
 import { profileApi } from "../api/profile";
 import { Input, Textarea } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
+import { BackupSection } from "../components/BackupSection";
 import styles from "./ProfilePage.module.css";
 
 const EMPTY: Partial<Profile> & { ein: string } = {
@@ -127,6 +128,8 @@ export function ProfilePage() {
           {saved && <span className={styles.savedMsg}>Saved!</span>}
         </div>
       </form>
+
+      <BackupSection />
     </div>
     </>
   );
