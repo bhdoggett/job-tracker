@@ -14,6 +14,7 @@ import { LogTimeModal } from "../components/LogTimeModal";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { DocsList } from "../components/DocsList";
 import { ProjectInvoicesTab } from "../components/ProjectInvoicesTab";
+import { splitByBilling } from "../lib/billing";
 import styles from "./ProjectDetailPage.module.css";
 
 type Tab = "tasks" | "time-entries" | "docs" | "invoices";
@@ -130,22 +131,12 @@ export function ProjectDetailPage() {
   const totalHours =
     entries.reduce((sum, e) => sum + (e.durationMin ?? 0), 0) / 60;
 
-  const lastInvoiceDate = invoices.length > 0
-    ? invoices.reduce((latest, inv) => inv.issuedDate > latest ? inv.issuedDate : latest, invoices[0].issuedDate)
-    : null;
-
-  const hoursSinceLastInvoice = lastInvoiceDate
-    ? entries
-        .filter((e) => e.startedAt && e.startedAt > lastInvoiceDate)
-        .reduce((sum, e) => sum + (e.durationMin ?? 0), 0) / 60
-    : null;
-
-  const timeEntryInvoiceMap = new Map<number, typeof invoices[0]>();
-  for (const inv of invoices) {
-    for (const entryId of inv.timeEntryIds ?? []) {
-      timeEntryInvoiceMap.set(entryId, inv);
-    }
-  }
+  const {
+    unbilled,
+    billed,
+    entryInvoices: timeEntryInvoiceMap,
+    unbilledHours,
+  } = splitByBilling(entries, invoices);
 
   if (!project) return <p>Loading...</p>;
 
@@ -225,9 +216,9 @@ export function ProjectDetailPage() {
               <Button size="sm" onClick={() => { setEditingEntry(null); setShowEntryForm(true); }}>
                 Log Time
               </Button>
-              {hoursSinceLastInvoice !== null && (
+              {invoices.length > 0 && (
                 <span className={styles.sinceInvoice}>
-                  {hoursSinceLastInvoice.toFixed(1)}h since last invoice
+                  {unbilledHours.toFixed(1)}h unbilled
                 </span>
               )}
             </div>
@@ -235,8 +226,6 @@ export function ProjectDetailPage() {
               <p className={styles.empty}>No time logged yet.</p>
             )}
             {entries.length > 0 && (() => {
-              const unbilled = entries.filter((e) => !timeEntryInvoiceMap.has(e.id));
-              const billed = entries.filter((e) => timeEntryInvoiceMap.has(e.id));
               const renderEntry = (e: TimeEntry) => {
                 const entryInvoice = timeEntryInvoiceMap.get(e.id);
                 const invoiceStatus = entryInvoice?.status;
