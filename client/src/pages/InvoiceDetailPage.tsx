@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import type { Invoice, Profile, Project } from "@job-tracker/shared";
 import { invoicesApi } from "../api/invoices";
 import { profileApi } from "../api/profile";
@@ -26,6 +26,7 @@ function formatAddress(p: Profile): string[] {
 export function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const invoiceId = parseInt(id!, 10);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -59,6 +60,14 @@ export function InvoiceDetailPage() {
     0,
   );
 
+  // An invoice is reached either from a project's Invoices tab or from the
+  // Invoices tab of Reports, so "back" depends on where the user came from.
+  // Opening the URL directly carries no origin — fall back to the project that
+  // owns the invoice, which is always somewhere real.
+  const origin = location.state as { from?: string; label?: string } | null;
+  const backTo = origin?.from ?? `/projects/${invoice.projectId}?tab=invoices`;
+  const backLabel = origin?.label ?? project?.name ?? "Project";
+
   const handlePrint = () => {
     const companyName = profile?.businessName || profile?.yourName || "";
     const parts = [companyName, invoice.invoiceNumber].filter(Boolean);
@@ -71,8 +80,8 @@ export function InvoiceDetailPage() {
   return (
     <div className={styles.page}>
       <div className={styles.actions}>
-        <button className={styles.back} onClick={() => navigate("/invoices")}>
-          ← Invoices
+        <button className={styles.back} onClick={() => navigate(backTo)}>
+          ← {backLabel}
         </button>
         <div className={styles.actionBtns}>
           <Select

@@ -10,6 +10,8 @@ import styles from "./ProjectInvoicesTab.module.css";
 
 interface Props {
   projectId: number;
+  /** Used to label the back control on the invoice detail page. */
+  projectName?: string;
 }
 
 function emptyForm() {
@@ -22,12 +24,19 @@ function emptyForm() {
   };
 }
 
-export function ProjectInvoicesTab({ projectId }: Props) {
+export function ProjectInvoicesTab({ projectId, projectName }: Props) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
   const navigate = useNavigate();
+
+  // Carried so the invoice detail page can send the user back where they came
+  // from, on the tab they were on, rather than to a fixed destination.
+  const invoiceOrigin = {
+    from: `/projects/${projectId}?tab=invoices`,
+    label: projectName ?? "Project",
+  };
 
   useEffect(() => {
     invoicesApi.list({ projectId }).then(setInvoices).catch(console.error);
@@ -51,7 +60,7 @@ export function ProjectInvoicesTab({ projectId }: Props) {
         periodEnd: form.periodEnd || undefined,
         taxRate: form.taxRate,
       });
-      navigate(`/invoices/${inv.id}`);
+      navigate(`/invoices/${inv.id}`, { state: invoiceOrigin });
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Failed to create invoice");
     }
@@ -77,7 +86,7 @@ export function ProjectInvoicesTab({ projectId }: Props) {
         </thead>
         <tbody>
           {invoices.map((inv) => (
-            <tr key={inv.id} className={styles.row} onClick={() => navigate(`/invoices/${inv.id}`)}>
+            <tr key={inv.id} className={styles.row} onClick={() => navigate(`/invoices/${inv.id}`, { state: invoiceOrigin })}>
               <td>{inv.invoiceNumber}</td>
               <td><Badge value={inv.status} /></td>
               <td>{inv.issuedDate}</td>

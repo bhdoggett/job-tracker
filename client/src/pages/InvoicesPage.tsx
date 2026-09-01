@@ -36,6 +36,10 @@ export function InvoicesPage({ embedded }: { embedded?: boolean } = {}) {
   });
   const navigate = useNavigate();
 
+  // This list is rendered as a tab inside Reports, so that is where the invoice
+  // detail page should return the user.
+  const invoiceOrigin = { from: "/reports?tab=invoices", label: "Reports" };
+
   useEffect(() => {
     invoicesApi.list().then(setInvoices).catch(console.error);
     projectsApi.list().then(setProjects).catch(console.error);
@@ -120,7 +124,7 @@ export function InvoicesPage({ embedded }: { embedded?: boolean } = {}) {
     });
     setInvoices((prev) => [inv, ...prev]);
     setShowCreate(false);
-    navigate(`/invoices/${inv.id}`);
+    navigate(`/invoices/${inv.id}`, { state: invoiceOrigin });
   };
 
   return (
@@ -149,7 +153,7 @@ export function InvoicesPage({ embedded }: { embedded?: boolean } = {}) {
             <tr
               key={inv.id}
               className={styles.row}
-              onClick={() => navigate(`/invoices/${inv.id}`)}
+              onClick={() => navigate(`/invoices/${inv.id}`, { state: invoiceOrigin })}
             >
               <td>{inv.invoiceNumber}</td>
               <td>{projects.find((p) => p.id === inv.projectId)?.name ?? `#${inv.projectId}`}</td>
