@@ -41,9 +41,13 @@
   padding: 0.35rem 1.25rem 0.4rem;
   display: block;
   background: #27272a;
-  /* SVG clip-path: angled sides + rounded top corners, scales per element */
   clip-path: url(#jobz-tab);
-  transition: color 0.15s, background 0.15s;
+  /* border via drop-shadow (clip-path clips real borders) */
+  filter:
+    drop-shadow(0 -1px 0 rgba(255, 255, 255, 0.12))
+    drop-shadow(-1px 0 0 rgba(255, 255, 255, 0.09))
+    drop-shadow(1px 0 0 rgba(255, 255, 255, 0.09));
+  transition: color 0.15s, background 0.15s, filter 0.15s;
   position: relative;
   z-index: 0;
   margin-left: -6px;
@@ -71,6 +75,7 @@
   padding-top: 0.6rem !important;
   margin-bottom: -2px;
   z-index: 2;
+  filter: none;
 }
 
 @media print {
