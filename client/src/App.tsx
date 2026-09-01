@@ -28,6 +28,9 @@ export default function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="business" element={<BusinessPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        {/* An unmatched path would otherwise render an empty <main>, which is
+            indistinguishable from a crash. Send it somewhere real instead. */}
+        <Route path="*" element={<Navigate to="/projects" replace />} />
       </Route>
     </Routes>
   );
