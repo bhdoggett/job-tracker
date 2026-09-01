@@ -10,6 +10,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { Input, Select, Textarea } from "../components/ui/Input";
+import { useTabParam } from "../lib/useTabParam";
 import { LogTimeModal } from "../components/LogTimeModal";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { DocsList } from "../components/DocsList";
@@ -19,6 +20,8 @@ import styles from "./ProjectDetailPage.module.css";
 
 type Tab = "tasks" | "time-entries" | "docs" | "invoices";
 
+const TAB_KEYS: readonly Tab[] = ["tasks", "time-entries", "docs", "invoices"];
+
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -27,7 +30,7 @@ export function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [entries, setEntries] = useState<TimeEntry[]>([]);
-  const [tab, setTab] = useState<Tab>("tasks");
+  const [tab, setTab] = useTabParam<Tab>(TAB_KEYS, "tasks");
   const [notes, setNotes] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -175,24 +178,28 @@ export function ProjectDetailPage() {
         <div className={styles.tabs}>
           <button
             className={`${styles.tab}${tab === "tasks" ? ` ${styles.tabActive}` : ""}`}
+            aria-current={tab === "tasks" ? "page" : undefined}
             onClick={() => setTab("tasks")}
           >
             Tasks ({tasks.length})
           </button>
           <button
             className={`${styles.tab}${tab === "time-entries" ? ` ${styles.tabActive}` : ""}`}
+            aria-current={tab === "time-entries" ? "page" : undefined}
             onClick={() => setTab("time-entries")}
           >
             Time Entries — {totalHours.toFixed(1)}h
           </button>
           <button
             className={`${styles.tab}${tab === "docs" ? ` ${styles.tabActive}` : ""}`}
+            aria-current={tab === "docs" ? "page" : undefined}
             onClick={() => setTab("docs")}
           >
             Docs
           </button>
           <button
             className={`${styles.tab}${tab === "invoices" ? ` ${styles.tabActive}` : ""}`}
+            aria-current={tab === "invoices" ? "page" : undefined}
             onClick={() => setTab("invoices")}
           >
             Invoices
@@ -256,7 +263,7 @@ export function ProjectDetailPage() {
         )}
 
         {tab === "docs" && <DocsList projectId={projectId} />}
-        {tab === "invoices" && <ProjectInvoicesTab projectId={projectId} />}
+        {tab === "invoices" && <ProjectInvoicesTab projectId={projectId} projectName={project.name} />}
       </div>
 
       <div className={`${styles.notesPanel}${notesOpen ? ` ${styles.notesPanelOpen}` : ""}`}>

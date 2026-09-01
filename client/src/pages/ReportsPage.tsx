@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { TasksPage } from "./TasksPage";
 import { TimesheetsPage } from "./TimesheetsPage";
 import { InvoicesPage } from "./InvoicesPage";
 import { ExpensesPage } from "./ExpensesPage";
+import { useTabParam } from "../lib/useTabParam";
 import styles from "./ReportsPage.module.css";
 
 type Tab = "tasks" | "timesheets" | "invoices" | "expenses";
@@ -14,8 +14,10 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "expenses", label: "Expenses" },
 ];
 
+const TAB_KEYS = TABS.map((t) => t.key);
+
 export function ReportsPage() {
-  const [tab, setTab] = useState<Tab>("tasks");
+  const [tab, setTab] = useTabParam<Tab>(TAB_KEYS, "tasks");
 
   return (
     <div>
@@ -26,6 +28,7 @@ export function ReportsPage() {
             <button
               key={t.key}
               className={`${styles.tab}${tab === t.key ? ` ${styles.tabActive}` : ""}`}
+              aria-current={tab === t.key ? "page" : undefined}
               onClick={() => setTab(t.key)}
             >
               {t.label}
