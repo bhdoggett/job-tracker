@@ -90,6 +90,9 @@ byte-identical to the source machine's** or Step 6 will refuse to import.
 npm run db:baseline
 ```
 
+If that errors with a missing script, you are on a commit from before the root
+passthrough existed — use `npm run db:baseline --workspace=backend` instead.
+
 Run this **even if you think the database is fresh** — it is idempotent and tells you
 which situation you're in:
 
